@@ -1,5 +1,50 @@
 @import "tailwindcss";
 
+/* Obsidian — High-Contrast Dark (see DESIGN.md) */
+@theme {
+  /* Core palette */
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  --color-muted-foreground: #a1a1aa;
+
+  --color-primary: #a78bfa;
+  --color-primary-foreground: #09090b;
+
+  --color-tertiary: #34d399;
+  --color-success: #34d399;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
+
+  /* Surface scale — zinc grays (#0c0c0f → #27272a) */
+  --color-surface-lowest: #0c0c0f;
+  --color-surface-low: #121214;
+  --color-surface: #18181b;
+  --color-surface-high: #1f1f22;
+  --color-surface-highest: #27272a;
+
+  /* Semantic aliases */
+  --color-card: #18181b;
+  --color-card-foreground: #fafafa;
+  --color-border: #27272a;
+  --color-outline: #27272a;
+  --color-input: #18181b;
+  --color-ring: #a78bfa;
+  --color-ring-offset: #09090b;
+
+  /* Typography */
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --tracking-heading: -0.02em;
+
+  /* Radius — 8px cards per DESIGN.md */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-card: 0.5rem;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -12,4 +57,55 @@ body,
 
 body {
   margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-foreground);
+    font-family: var(--font-heading);
+    letter-spacing: var(--tracking-heading);
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+  }
+
+  pre {
+    background-color: var(--color-surface-lowest);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+  }
+
+  code:not(pre code) {
+    background-color: var(--color-surface-lowest);
+    border-radius: 0.25rem;
+    padding-inline: 0.25rem;
+  }
 }
