@@ -15,5 +15,8 @@ export default defineConfig({
       },
     ],
     "no-warning-comments": "warn",
+
+    // TYPESCRIPT
+    "typescript/consistent-type-definitions": ["error", "type"],
   },
 });

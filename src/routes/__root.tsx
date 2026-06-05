@@ -13,9 +13,19 @@ import appCss from "../styles.css?url";
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <HeadContent />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Sora:wght@100..800&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body>
         {children}
@@ -37,9 +47,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   );
 }
 
-interface MyRouterContext {
+type MyRouterContext = {
   queryClient: QueryClient;
-}
+};
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
@@ -58,7 +68,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         name: "viewport",
       },
       {
-        title: "TanStack Start Starter",
+        title: "FIFA Cup 2026",
       },
     ],
   }),

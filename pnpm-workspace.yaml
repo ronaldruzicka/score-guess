@@ -2,6 +2,7 @@ allowBuilds:
   better-sqlite3: true
   esbuild: true
   lightningcss: true
+  msw: true
 minimumReleaseAgeExclude:
   - "@tanstack/react-router-ssr-query@1.167.1"
   - "@tanstack/react-router@1.170.9"

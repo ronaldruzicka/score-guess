@@ -14,5 +14,9 @@ export default defineConfig({
       "unknown",
     ],
   },
+  sortTailwindcss: {
+    functions: ["clsx", "cn"],
+    stylesheet: "./src/styles.css",
+  },
   trailingComma: "all",
 });
