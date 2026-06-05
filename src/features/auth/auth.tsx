@@ -12,11 +12,14 @@ export function Auth() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-6 md:p-12">
       <div
-        className="fixed inset-0 -z-1 h-full w-full bg-[url(/stadium.png)] bg-cover bg-center opacity-40 blur-xs contrast-200 grayscale"
+        className="fixed inset-0 -z-1 h-full w-full bg-[url(/stadium.png)] bg-cover bg-center opacity-40 blur-xs contrast-200 grayscale motion-safe:animate-in motion-safe:duration-1000 motion-safe:fill-mode-both motion-safe:fade-in"
         aria-hidden
       />
 
-      <Card className="w-full max-w-96 opacity-80 backdrop-blur-sm" size="lg">
+      <Card
+        className="w-full max-w-96 opacity-80 backdrop-blur-sm motion-safe:animate-in motion-safe:delay-150 motion-safe:duration-700 motion-safe:ease-out motion-safe:fill-mode-both motion-safe:zoom-in-95 motion-safe:fade-in motion-safe:slide-in-from-bottom-6"
+        size="lg"
+      >
         <CardHeader className="justify-items-center gap-4">
           <Image
             src={wcLogo}
