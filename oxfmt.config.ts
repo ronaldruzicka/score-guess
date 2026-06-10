@@ -15,7 +15,7 @@ export default defineConfig({
     ],
   },
   sortTailwindcss: {
-    functions: ["clsx", "cn"],
+    functions: ["clsx", "cn", "cva"],
     stylesheet: "./src/styles.css",
   },
   trailingComma: "all",

@@ -1,12 +1,10 @@
-import { Image } from "@unpic/react";
-
+import { Logo } from "@/assets/logo/logo";
 import { Card, CardContent, CardFooter, CardHeader } from "@/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
 
 import { AuthSocial } from "./auth-social";
 import { LoginForm } from "./login-form";
 import { SignUpForm } from "./sign-up-form";
-import wcLogo from "./wc26-logo.png";
 
 export function Auth() {
   return (
@@ -21,13 +19,7 @@ export function Auth() {
         size="lg"
       >
         <CardHeader className="justify-items-center gap-4">
-          <Image
-            src={wcLogo}
-            alt="FIFA Cup 2026"
-            layout="constrained"
-            width={56}
-            height={84}
-          />
+          <Logo />
           <h1 className="font-heading text-3xl font-black tracking-tight">
             FIFA CUP 2026
           </h1>

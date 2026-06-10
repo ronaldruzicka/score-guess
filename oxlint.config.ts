@@ -14,6 +14,8 @@ export default defineConfig({
         allowArrowFunctions: true,
       },
     ],
+    "no-shadow": "off",
+    "no-use-before-define": ["error", { functions: false }],
     "no-warning-comments": "warn",
 
     // TYPESCRIPT
