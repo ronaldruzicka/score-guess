@@ -1,12 +1,3 @@
-"use client";
-
-import {
-  ArrangeByNumbersOneNineIcon,
-  ChartIcon,
-  DashboardSquare02Icon,
-  FootballIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import * as React from "react";
 
 import { Logo } from "@/assets/logo/logo";
@@ -16,40 +7,6 @@ import {
   SidebarContent,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-
-// This is sample data.
-const data = {
-  navMain: [
-    {
-      icon: <HugeiconsIcon icon={DashboardSquare02Icon} strokeWidth={2} />,
-      isActive: true,
-      title: "Dashboard",
-      url: "#",
-    },
-    {
-      icon: <HugeiconsIcon icon={FootballIcon} strokeWidth={2} />,
-      title: "Match Center",
-      url: "#",
-    },
-    {
-      icon: (
-        <HugeiconsIcon icon={ArrangeByNumbersOneNineIcon} strokeWidth={2} />
-      ),
-      title: "Standings",
-      url: "#",
-    },
-    {
-      icon: <HugeiconsIcon icon={ChartIcon} strokeWidth={2} />,
-      title: "Leaderboard",
-      url: "#",
-    },
-  ],
-  user: {
-    avatar: "/avatars/shadcn.jpg",
-    email: "m@example.com",
-    name: "shadcn",
-  },
-};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -67,7 +24,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain />
       </SidebarContent>
     </Sidebar>
   );

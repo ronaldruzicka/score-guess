@@ -11,6 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProtectedStandingsIndexRouteImport } from './routes/_protected/standings/index'
+import { Route as ProtectedMatchCenterIndexRouteImport } from './routes/_protected/match-center/index'
+import { Route as ProtectedLeaderboardIndexRouteImport } from './routes/_protected/leaderboard/index'
 import { Route as ProtectedDashboardIndexRouteImport } from './routes/_protected/dashboard/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -23,6 +26,23 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedStandingsIndexRoute = ProtectedStandingsIndexRouteImport.update({
+  id: '/standings/',
+  path: '/standings/',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
+const ProtectedMatchCenterIndexRoute =
+  ProtectedMatchCenterIndexRouteImport.update({
+    id: '/match-center/',
+    path: '/match-center/',
+    getParentRoute: () => ProtectedRouteRoute,
+  } as any)
+const ProtectedLeaderboardIndexRoute =
+  ProtectedLeaderboardIndexRouteImport.update({
+    id: '/leaderboard/',
+    path: '/leaderboard/',
+    getParentRoute: () => ProtectedRouteRoute,
+  } as any)
 const ProtectedDashboardIndexRoute = ProtectedDashboardIndexRouteImport.update({
   id: '/dashboard/',
   path: '/dashboard/',
@@ -38,11 +58,17 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/': typeof ProtectedDashboardIndexRoute
+  '/leaderboard/': typeof ProtectedLeaderboardIndexRoute
+  '/match-center/': typeof ProtectedMatchCenterIndexRoute
+  '/standings/': typeof ProtectedStandingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard': typeof ProtectedDashboardIndexRoute
+  '/leaderboard': typeof ProtectedLeaderboardIndexRoute
+  '/match-center': typeof ProtectedMatchCenterIndexRoute
+  '/standings': typeof ProtectedStandingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,18 +76,36 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_protected/dashboard/': typeof ProtectedDashboardIndexRoute
+  '/_protected/leaderboard/': typeof ProtectedLeaderboardIndexRoute
+  '/_protected/match-center/': typeof ProtectedMatchCenterIndexRoute
+  '/_protected/standings/': typeof ProtectedStandingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/auth/$' | '/dashboard/'
+  fullPaths:
+    | '/'
+    | '/api/auth/$'
+    | '/dashboard/'
+    | '/leaderboard/'
+    | '/match-center/'
+    | '/standings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/auth/$' | '/dashboard'
+  to:
+    | '/'
+    | '/api/auth/$'
+    | '/dashboard'
+    | '/leaderboard'
+    | '/match-center'
+    | '/standings'
   id:
     | '__root__'
     | '/'
     | '/_protected'
     | '/api/auth/$'
     | '/_protected/dashboard/'
+    | '/_protected/leaderboard/'
+    | '/_protected/match-center/'
+    | '/_protected/standings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -86,6 +130,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/standings/': {
+      id: '/_protected/standings/'
+      path: '/standings'
+      fullPath: '/standings/'
+      preLoaderRoute: typeof ProtectedStandingsIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+    '/_protected/match-center/': {
+      id: '/_protected/match-center/'
+      path: '/match-center'
+      fullPath: '/match-center/'
+      preLoaderRoute: typeof ProtectedMatchCenterIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+    '/_protected/leaderboard/': {
+      id: '/_protected/leaderboard/'
+      path: '/leaderboard'
+      fullPath: '/leaderboard/'
+      preLoaderRoute: typeof ProtectedLeaderboardIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
     '/_protected/dashboard/': {
       id: '/_protected/dashboard/'
       path: '/dashboard'
@@ -105,10 +170,16 @@ declare module '@tanstack/react-router' {
 
 interface ProtectedRouteRouteChildren {
   ProtectedDashboardIndexRoute: typeof ProtectedDashboardIndexRoute
+  ProtectedLeaderboardIndexRoute: typeof ProtectedLeaderboardIndexRoute
+  ProtectedMatchCenterIndexRoute: typeof ProtectedMatchCenterIndexRoute
+  ProtectedStandingsIndexRoute: typeof ProtectedStandingsIndexRoute
 }
 
 const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
   ProtectedDashboardIndexRoute: ProtectedDashboardIndexRoute,
+  ProtectedLeaderboardIndexRoute: ProtectedLeaderboardIndexRoute,
+  ProtectedMatchCenterIndexRoute: ProtectedMatchCenterIndexRoute,
+  ProtectedStandingsIndexRoute: ProtectedStandingsIndexRoute,
 }
 
 const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(

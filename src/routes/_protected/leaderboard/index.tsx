@@ -31,6 +31,6 @@ function RouteComponent() {
   );
 }
 
-export const Route = createFileRoute("/_protected/dashboard/")({
+export const Route = createFileRoute("/_protected/leaderboard/")({
   component: RouteComponent,
 });
