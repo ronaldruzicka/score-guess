@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
+import { NotFound } from "@/components/not-found";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
@@ -74,5 +75,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
   }),
+  notFoundComponent: NotFound,
   shellComponent: RootDocument,
 });
