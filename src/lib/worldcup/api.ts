@@ -67,10 +67,12 @@ async function fetchCached<TSchema extends z.ZodTypeAny>({
   const cached = cache.get(path);
 
   if (cached && cached.expiresAt > now) {
+    console.log("♻️ returning cached data", cached.value);
     return cached.value as z.infer<TSchema>;
   }
 
   const controller = new AbortController();
+
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
   const [error, response] = await fAwait(

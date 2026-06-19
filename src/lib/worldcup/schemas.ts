@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { STADIUM_TIMEZONE_BY_ID } from "./stadium-timezones";
+
 /**
  * The worldcup26.ir API returns nearly everything as strings
  * ("home_score": "0", "finished": "FALSE"), so these schemas coerce raw
@@ -20,34 +22,93 @@ const nullableString = z
 // Matches "06/11/2026 13:00" (MM/DD/YYYY HH:mm, stadium-local time).
 const LOCAL_DATE_PATTERN = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/u;
 
+function readDateTimePart(
+  parts: Intl.DateTimeFormatPart[],
+  type: Intl.DateTimeFormatPartTypes,
+): number {
+  const value = parts.find((part) => part.type === type)?.value;
+  const parsed = Number(value);
+
+  if (type === "hour" && parsed === 24) {
+    return 0;
+  }
+
+  return parsed;
+}
+
 /**
- * Parses the API's stadium-local kickoff string as UTC. The API provides no
- * timezone, and venues span UTC-4 to UTC-7, so this is up to 7 hours EARLIER
- * than the real kickoff — a safe bound for locking predictions.
+ * Converts the API's stadium-local kickoff string to a UTC instant using the
+ * venue's IANA time zone (see {@link STADIUM_TIMEZONE_BY_ID}).
  */
-function parseLocalDate(value: string): Date {
-  const match = LOCAL_DATE_PATTERN.exec(value);
+function parseStadiumKickoff(localDate: string, stadiumId: number): Date {
+  const timeZone = STADIUM_TIMEZONE_BY_ID[stadiumId];
+
+  if (!timeZone) {
+    throw new Error(`Unknown stadium timezone for id ${stadiumId}`);
+  }
+
+  const match = LOCAL_DATE_PATTERN.exec(localDate);
 
   if (!match) {
-    throw new Error(`Unexpected match date format: ${value}`);
+    throw new Error(`Unexpected match date format: ${localDate}`);
   }
 
   const [, month, day, year, hours, minutes] = match;
+  const targetYear = Number(year);
+  const targetMonth = Number(month);
+  const targetDay = Number(day);
+  const targetHour = Number(hours);
+  const targetMinute = Number(minutes);
 
-  return new Date(
-    Date.UTC(
-      Number(year),
-      Number(month) - 1,
-      Number(day),
-      Number(hours),
-      Number(minutes),
-    ),
+  let utc = Date.UTC(
+    targetYear,
+    targetMonth - 1,
+    targetDay,
+    targetHour,
+    targetMinute,
   );
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    hour: "numeric",
+    hour12: false,
+    minute: "numeric",
+    month: "numeric",
+    timeZone,
+    year: "numeric",
+  });
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const parts = formatter.formatToParts(new Date(utc));
+    const zonedMs = Date.UTC(
+      readDateTimePart(parts, "year"),
+      readDateTimePart(parts, "month") - 1,
+      readDateTimePart(parts, "day"),
+      readDateTimePart(parts, "hour"),
+      readDateTimePart(parts, "minute"),
+    );
+    const targetMs = Date.UTC(
+      targetYear,
+      targetMonth - 1,
+      targetDay,
+      targetHour,
+      targetMinute,
+    );
+    const diffMs = targetMs - zonedMs;
+
+    if (diffMs === 0) {
+      break;
+    }
+
+    utc += diffMs;
+  }
+
+  return new Date(utc);
 }
 
-export const gameStatusSchema = z.enum(["upcoming", "live", "finished"]);
+export const timeElapsedSchema = z.enum(["upcoming", "live", "finished"]);
 
-export type GameStatus = z.infer<typeof gameStatusSchema>;
+export type TimeElapsed = z.infer<typeof timeElapsedSchema>;
 
 export const gameTypeSchema = z.enum([
   "group",
@@ -88,16 +149,18 @@ const rawGameSchema = z.object({
 
 type RawGame = z.infer<typeof rawGameSchema>;
 
-function parseGameStatus(raw: RawGame): GameStatus {
+function parseTimeElapsed(raw: RawGame): TimeElapsed {
   if (raw.finished) {
     return "finished";
   }
 
-  if (raw.time_elapsed !== "notstarted") {
-    return "live";
+  const elapsed = raw.time_elapsed.toLowerCase();
+
+  if (elapsed === "notstarted") {
+    return "upcoming";
   }
 
-  return "upcoming";
+  return "live";
 }
 
 export const gameSchema = rawGameSchema.transform((raw) => ({
@@ -114,12 +177,11 @@ export const gameSchema = rawGameSchema.transform((raw) => ({
   homeTeamLabel: raw.home_team_label ?? null,
   homeTeamName: raw.home_team_name_en ?? null,
   id: raw.id,
-  kickoff: parseLocalDate(raw.local_date),
+  kickoff: parseStadiumKickoff(raw.local_date, raw.stadium_id),
   localDate: raw.local_date,
   matchday: raw.matchday,
   stadiumId: raw.stadium_id,
-  status: parseGameStatus(raw),
-  timeElapsed: raw.time_elapsed,
+  timeElapsed: parseTimeElapsed(raw),
   type: raw.type,
 }));
 
@@ -218,3 +280,26 @@ export const groupsResponseSchema = z.object({
 export const stadiumsResponseSchema = z.object({
   stadiums: z.array(stadiumSchema),
 });
+
+/** Score pair shared by {@link Game} results and user predictions. */
+export type MatchScore = Pick<Game, "awayScore" | "homeScore">;
+
+/** Team row for match UI, derived from {@link Team}. */
+export type MatchTeam = Pick<Team, "name"> & {
+  flag: Team["flag"] | null;
+};
+
+/** Game enriched with resolved teams and optional user prediction. */
+export type EnrichedMatch = {
+  awayTeam: MatchTeam;
+  game: Game;
+  homeTeam: MatchTeam;
+  points: number | null;
+  prediction: MatchScore | null;
+};
+
+/** Upcoming matches grouped under a formatted kickoff date heading. */
+export type MatchDay = {
+  dateLabel: string;
+  matches: EnrichedMatch[];
+};

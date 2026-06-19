@@ -7,6 +7,8 @@ export default defineConfig({
   extends: [core, react, tanstack],
   ignorePatterns: core.ignorePatterns,
   rules: {
+    "arrow-body-style": ["error", "as-needed"],
+
     "func-style": [
       "error",
       "declaration",

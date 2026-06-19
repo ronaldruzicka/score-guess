@@ -49,7 +49,7 @@ export function TextField({
           aria-invalid={hasError || undefined}
           autoComplete={autoComplete}
           className={cn(
-            "h-11 border-border py-3.5 text-sm placeholder:text-muted-foreground/60",
+            "h-11 py-3.5 text-sm placeholder:text-muted-foreground/60",
             icon && "pl-10",
           )}
           id={id}

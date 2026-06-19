@@ -88,7 +88,7 @@
   --destructive: oklch(0.6368 0.2078 25.3313);
   --destructive-foreground: oklch(0.9851 0 0);
   --border: oklch(0.387 0.0055 286.03);
-  --input: oklch(0.1408 0.0044 285.8229);
+  --input: oklch(0.387 0.0055 286.03);
   --ring: oklch(0.709 0.1592 293.5412);
   --chart-1: oklch(0.7162 0.1597 290.3962);
   --chart-2: oklch(0.6382 0.1047 274.9117);
@@ -186,6 +186,22 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+
+  @keyframes live-badge-glow {
+    0% {
+      box-shadow: 0 0 0 0 rgb(239 68 68 / 0.6);
+    }
+
+    35% {
+      box-shadow: 0 0 0 6px rgb(239 68 68 / 0);
+    }
+
+    100% {
+      box-shadow: 0 0 0 6px rgb(239 68 68 / 0);
+    }
+  }
+
+  --animate-live-badge-glow: live-badge-glow 2s ease-out infinite;
 }
 
 @layer base {

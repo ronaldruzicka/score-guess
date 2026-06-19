@@ -10,7 +10,7 @@ const LIVE_REFETCH_INTERVAL = 30 * SECOND;
 const IDLE_REFETCH_INTERVAL = 5 * MINUTE;
 
 function hasLiveGame(games: Game[]): boolean {
-  return games.some((game) => game.status === "live");
+  return games.some((game) => game.timeElapsed === "live");
 }
 
 export const gamesQueryOptions = queryOptions({

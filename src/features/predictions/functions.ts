@@ -136,7 +136,7 @@ export const getLeaderboard = createServerFn({ method: "GET" }).handler(
     const results = new Map<number, MatchResult>();
 
     for (const game of games) {
-      if (game.status === "finished") {
+      if (game.timeElapsed === "finished") {
         results.set(game.id, {
           awayScore: game.awayScore,
           homeScore: game.homeScore,

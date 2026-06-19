@@ -30,6 +30,18 @@ export function isExactHit(prediction: ScoreLike, result: ScoreLike): boolean {
 /**
  * Exact score = 3 pts, correct outcome (win/draw/loss) = 1 pt, otherwise 0.
  */
+export function getTipResultLabel(points: number): string | null {
+  if (points === POINTS_EXACT) {
+    return "Perfect Score";
+  }
+
+  if (points === POINTS_OUTCOME) {
+    return "Result Correct";
+  }
+
+  return null;
+}
+
 export function scorePrediction(
   prediction: ScoreLike,
   result: ScoreLike,
