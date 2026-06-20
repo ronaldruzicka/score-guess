@@ -204,6 +204,8 @@ export function findDefaultStageTab(
 }
 
 const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+const TYPICAL_MATCH_DURATION_MS = 2 * HOUR_MS;
 const KICKOFF_COUNTDOWN_WINDOW_MS = 6 * HOUR_MS;
 
 /** Show relative countdown only when kickoff is in the next six hours. */
@@ -264,17 +266,25 @@ export function filterActiveMatches(matches: EnrichedMatch[]): EnrichedMatch[] {
     });
 }
 
+/** Finished matches whose estimated end time falls within the last 24 hours. */
 export function getRecentMatches(
   matches: EnrichedMatch[],
-  limit = 2,
+  now = Date.now(),
 ): EnrichedMatch[] {
+  const cutoff = now - DAY_MS;
+
   return matches
-    .filter(
-      (match) =>
-        match.game.timeElapsed === "finished" && match.prediction !== null,
-    )
-    .toSorted((a, b) => b.game.kickoff.getTime() - a.game.kickoff.getTime())
-    .slice(0, limit);
+    .filter((match) => {
+      if (match.game.timeElapsed !== "finished") {
+        return false;
+      }
+
+      const estimatedFinish =
+        match.game.kickoff.getTime() + TYPICAL_MATCH_DURATION_MS;
+
+      return estimatedFinish >= cutoff;
+    })
+    .toSorted((a, b) => b.game.kickoff.getTime() - a.game.kickoff.getTime());
 }
 
 export function formatMatchMeta(match: EnrichedMatch): string {

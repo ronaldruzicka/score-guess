@@ -4,11 +4,18 @@ import type { PredictionFormInput } from "@/features/predictions/schemas";
 
 import type { EnrichedMatch, MatchTeam } from "./build-matches";
 
-import { Edit02Icon, UnavailableIcon } from "@hugeicons/core-free-icons";
+import {
+  Cancel01Icon,
+  Edit02Icon,
+  Flag02Icon,
+  SaveIcon,
+  UnavailableIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Image } from "@unpic/react";
+import { useState } from "react";
 
 import { Show } from "@/components/show";
 import { Button } from "@/components/ui/button";
@@ -70,26 +77,26 @@ function ScoreTip({ tip }: { readonly tip: number | undefined }) {
 }
 
 function TeamFlag({ flag }: { readonly flag: MatchTeam["flag"] }) {
-  if (flag === null) {
-    return (
-      <span
-        aria-hidden
-        className="inline-flex size-10 items-center justify-center rounded-xs bg-muted text-sm font-medium text-muted-foreground"
-      >
-        ?
-      </span>
-    );
-  }
-
   return (
-    <Image
-      alt=""
-      className="rounded-xs"
-      height={40}
-      layout="fixed"
-      src={flag}
-      width={40}
-    />
+    <Show
+      when={flag}
+      fallback={
+        <span className="inline-flex items-center justify-center text-muted-foreground">
+          <HugeiconsIcon icon={Flag02Icon} size={24} />
+        </span>
+      }
+    >
+      {(flag) => (
+        <Image
+          alt=""
+          className="rounded-xs"
+          height={40}
+          layout="fixed"
+          src={flag}
+          width={40}
+        />
+      )}
+    </Show>
   );
 }
 
@@ -154,6 +161,9 @@ function MatchStatusHeader({
 export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
   const tippingOpen = isTippingOpen(match);
   const { awayTeam, game, homeTeam, prediction } = match;
+  const hasPrediction = prediction !== null;
+  const [isEditing, setIsEditing] = useState(false);
+  const isFormEditable = tippingOpen && (!hasPrediction || isEditing);
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -166,6 +176,7 @@ export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
         },
       }),
     onSuccess: async () => {
+      setIsEditing(false);
       await queryClient.invalidateQueries({
         queryKey: myPredictionsQueryOptions.queryKey,
       });
@@ -210,7 +221,7 @@ export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
         event.preventDefault();
         event.stopPropagation();
 
-        if (!tippingOpen) {
+        if (!isFormEditable) {
           return;
         }
 
@@ -227,7 +238,7 @@ export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
           />
           <div className="flex items-center gap-3 pt-4">
             <Show
-              when={tippingOpen}
+              when={isFormEditable}
               fallback={<ScoreTip tip={prediction?.homeScore} />}
             >
               <form.Field name="homeScore">
@@ -238,7 +249,7 @@ export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
             </Show>
             <span className="h-0.5 w-2 shrink-0 rounded-full bg-border" />
             <Show
-              when={tippingOpen}
+              when={isFormEditable}
               fallback={<ScoreTip tip={prediction?.awayScore} />}
             >
               <form.Field name="awayScore">
@@ -254,18 +265,41 @@ export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
         <TeamColumn align="right" team={awayTeam} />
       </div>
 
-      <Show when={tippingOpen}>
+      <Show when={isFormEditable}>
         <div className="flex flex-col items-center gap-2">
-          <form.Subscribe
-            selector={(state) => [state.canSubmit, state.isSubmitting]}
-          >
-            {([canSubmit, isSubmitting]) => (
-              <Button disabled={!canSubmit || isSubmitting} type="submit">
-                <HugeiconsIcon icon={Edit02Icon} />
-                {isSubmitting ? "Saving…" : "Submit Tip"}
+          <div className="flex items-center gap-2">
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+            >
+              {([canSubmit, isSubmitting]) => (
+                <Button disabled={!canSubmit || isSubmitting} type="submit">
+                  <HugeiconsIcon icon={SaveIcon} />
+                  {isSubmitting ? "Saving…" : "Submit Tip"}
+                </Button>
+              )}
+            </form.Subscribe>
+            <Show when={hasPrediction && isEditing}>
+              <Button
+                disabled={mutation.isPending}
+                onClick={() => {
+                  if (prediction === null) {
+                    return;
+                  }
+
+                  form.reset({
+                    awayScore: String(prediction.awayScore),
+                    homeScore: String(prediction.homeScore),
+                  });
+                  setIsEditing(false);
+                }}
+                type="button"
+                variant="outline"
+                size="icon"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} />
               </Button>
-            )}
-          </form.Subscribe>
+            </Show>
+          </div>
           <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
             {(formError) => {
               const message = formError ? formatFieldError(formError) : null;
@@ -277,6 +311,20 @@ export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
               ) : null;
             }}
           </form.Subscribe>
+        </div>
+      </Show>
+      <Show when={tippingOpen && hasPrediction && !isEditing}>
+        <div className="flex justify-center">
+          <Button
+            onClick={() => {
+              setIsEditing(true);
+            }}
+            type="button"
+            variant="outline"
+          >
+            <HugeiconsIcon icon={Edit02Icon} />
+            Edit tip
+          </Button>
         </div>
       </Show>
       <Show when={!tippingOpen}>

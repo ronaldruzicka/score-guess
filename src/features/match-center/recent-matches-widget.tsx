@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "@tanstack/react-router";
 import { Image } from "@unpic/react";
 
+import { Show } from "@/components/show";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   getTipResultLabel,
@@ -38,6 +39,8 @@ function PointsBadge({ points }: { readonly points: number }) {
 function RecentMatchRow({ match }: { readonly match: EnrichedMatch }) {
   const { awayTeam, game, homeTeam, points, prediction } = match;
   const tipLabel = points === null ? null : getTipResultLabel(points);
+  const homeLost = game.homeScore < game.awayScore;
+  const awayLost = game.awayScore < game.homeScore;
 
   return (
     <div className="flex flex-col gap-2">
@@ -45,30 +48,35 @@ function RecentMatchRow({ match }: { readonly match: EnrichedMatch }) {
         <p className="text-[10px] font-bold text-muted-foreground">
           {formatMatchMeta(match)}
         </p>
-        {points === null ? null : <PointsBadge points={points} />}
+        <Show when={points}>
+          {(scoredPoints) => <PointsBadge points={scoredPoints} />}
+        </Show>
       </div>
 
       <ScoreRow
         flag={homeTeam.flag}
+        muted={homeLost}
         name={homeTeam.name}
         score={game.homeScore}
       />
       <ScoreRow
         flag={awayTeam.flag}
-        muted={game.awayScore < game.homeScore}
+        muted={awayLost}
         name={awayTeam.name}
         score={game.awayScore}
       />
 
-      {prediction === null ? null : (
-        <p className="text-[10px] text-muted-foreground">
-          Your tip:{" "}
-          <span className="text-foreground">
-            {prediction.homeScore} - {prediction.awayScore}
-          </span>
-          {tipLabel ? ` (${tipLabel})` : null}
-        </p>
-      )}
+      <Show when={prediction}>
+        {(tip) => (
+          <p className="text-[10px] text-muted-foreground">
+            Your tip:{" "}
+            <span className="text-foreground">
+              {tip.homeScore} - {tip.awayScore}
+            </span>
+            {tipLabel ? ` (${tipLabel})` : null}
+          </p>
+        )}
+      </Show>
     </div>
   );
 }
@@ -85,7 +93,7 @@ function ScoreRow({
   readonly score: number;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 pt-1">
+    <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         {flag ? (
           <Image
@@ -143,7 +151,7 @@ export function RecentMatchesWidget({
       <CardContent className="flex flex-col gap-0 p-0">
         {matches.length === 0 ? (
           <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-            No finished matches with tips yet.
+            No matches finished in the last 24 hours.
           </p>
         ) : (
           matches.map((match, index) => (
