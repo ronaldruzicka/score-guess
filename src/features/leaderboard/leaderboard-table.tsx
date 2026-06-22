@@ -1,14 +1,11 @@
 import type { LeaderboardRow } from "@/features/predictions/functions";
 
-import { UserCircleIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   createColumnHelper,
   tableFeatures,
   useTable,
 } from "@tanstack/react-table";
 
-import { Show } from "@/components/show";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
@@ -72,23 +69,14 @@ function NameCell({
       <Avatar
         size="sm"
         className={cn(
-          isCurrentUser && "ring-2 ring-primary ring-offset-2 ring-offset-card",
+          isCurrentUser && "ring-2 ring-accent ring-offset-2 ring-offset-card",
         )}
       >
         {image ? <AvatarImage alt="" src={image} /> : null}
         <AvatarFallback>{getInitials(name)}</AvatarFallback>
       </Avatar>
       <div className="min-w-0">
-        <p className="flex items-center gap-1 truncate font-medium">
-          {name}
-          <Show when={isCurrentUser} fallback={null}>
-            <HugeiconsIcon
-              icon={UserCircleIcon}
-              className="text-emerald-400"
-              size={20}
-            />
-          </Show>
-        </p>
+        <p className="flex items-center gap-1 truncate font-medium">{name}</p>
       </div>
     </div>
   );
