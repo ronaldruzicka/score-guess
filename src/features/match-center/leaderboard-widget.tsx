@@ -1,8 +1,8 @@
 import type { LeaderboardRow } from "@/features/predictions/functions";
 
 import {
-  ArrowDown01Icon,
-  ArrowUp01Icon,
+  TradeDownIcon,
+  TradeUpIcon,
   ChartIcon,
   MinusSignIcon,
 } from "@hugeicons/core-free-icons";
@@ -17,13 +17,16 @@ import { cn } from "@/lib/utils";
 
 import { leaderboardQueryOptions } from "./queries";
 
+const TREND_ICON_SIZE = 16;
+
 function TrendIcon({ rank }: { readonly rank: number }) {
   if (rank === 1) {
     return (
       <HugeiconsIcon
-        className="size-3 text-emerald-400"
-        icon={ArrowUp01Icon}
+        className="text-emerald-400"
+        icon={TradeUpIcon}
         strokeWidth={2}
+        size={TREND_ICON_SIZE}
       />
     );
   }
@@ -31,18 +34,20 @@ function TrendIcon({ rank }: { readonly rank: number }) {
   if (rank <= 3) {
     return (
       <HugeiconsIcon
-        className="size-3 text-muted-foreground"
+        className="text-muted-foreground"
         icon={MinusSignIcon}
         strokeWidth={2}
+        size={TREND_ICON_SIZE}
       />
     );
   }
 
   return (
     <HugeiconsIcon
-      className="size-3 text-destructive"
-      icon={ArrowDown01Icon}
+      className="text-destructive"
+      icon={TradeDownIcon}
       strokeWidth={2}
+      size={TREND_ICON_SIZE}
     />
   );
 }
@@ -59,7 +64,7 @@ function LeaderboardRowItem({
       <div className="flex min-w-0 items-center gap-3">
         <div
           className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded border text-xs font-bold",
+            "flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold",
             isCurrentUser
               ? "border-primary bg-primary text-primary-foreground"
               : "border-border bg-muted/60 text-foreground",

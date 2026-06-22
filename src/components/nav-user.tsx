@@ -16,13 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n.charAt(0))
-    .join("");
-}
+import { getInitials } from "@/lib/get-initials";
 
 type Props = Readonly<{
   user: {

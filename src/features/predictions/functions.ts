@@ -16,12 +16,16 @@ type MatchResult = {
   homeScore: number;
 };
 
+type FormResult = "loss" | "win";
+
 type LeaderboardEntry = {
   correctOutcomes: number;
   exactHits: number;
   image: string | null;
   name: string;
   points: number;
+  recentForm: FormResult[];
+  scoredPredictions: number;
   userId: string;
 };
 
@@ -55,6 +59,8 @@ function accumulateLeaderboardEntry({
       image: row.image,
       name: row.name,
       points: 0,
+      recentForm: [],
+      scoredPredictions: 0,
       userId: row.userId,
     } satisfies LeaderboardEntry);
 
@@ -64,12 +70,15 @@ function accumulateLeaderboardEntry({
 
   const points = scorePrediction(row, result);
   const exactHit = isExactHit(row, result);
+  const formResult: FormResult = points > 0 ? "win" : "loss";
 
   return {
     ...base,
     correctOutcomes: base.correctOutcomes + (points === POINTS_OUTCOME ? 1 : 0),
     exactHits: base.exactHits + (exactHit ? 1 : 0),
     points: base.points + points,
+    recentForm: [...base.recentForm, formResult].slice(-5),
+    scoredPredictions: base.scoredPredictions + 1,
   };
 }
 

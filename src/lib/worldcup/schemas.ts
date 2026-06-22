@@ -4,11 +4,22 @@ import { STADIUM_TIMEZONE_BY_ID } from "./stadium-timezones";
 
 /**
  * The worldcup26.ir API returns nearly everything as strings
- * ("home_score": "0", "finished": "FALSE"), so these schemas coerce raw
- * payloads into clean, typed domain objects.
+ * ("home_score": "0", "finished": "FALSE", unplayed scores: "null"), so these
+ * schemas coerce raw payloads into clean, typed domain objects.
  */
 
 const numericString = z.coerce.number();
+
+/** The API uses "null" or empty strings for unplayed match scores. */
+const scoreString = z.string().transform((value) => {
+  if (value === "null" || value.trim() === "") {
+    return 0;
+  }
+
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed) ? parsed : 0;
+});
 
 const stringBoolean = z
   .string()
@@ -123,7 +134,7 @@ export const gameTypeSchema = z.enum([
 export type GameType = z.infer<typeof gameTypeSchema>;
 
 const rawGameSchema = z.object({
-  away_score: numericString,
+  away_score: scoreString,
   away_scorers: nullableString,
   // Knockout matches use 0 until the bracket team is determined.
   away_team_id: numericString,
@@ -132,7 +143,7 @@ const rawGameSchema = z.object({
   away_team_name_fa: z.string().optional(),
   finished: stringBoolean,
   group: z.string(),
-  home_score: numericString,
+  home_score: scoreString,
   home_scorers: nullableString,
   home_team_id: numericString,
   home_team_label: z.string().optional(),

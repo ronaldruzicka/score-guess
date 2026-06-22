@@ -1,7 +1,8 @@
-import "dotenv/config";
-import { user } from "@/db/auth-schema";
+import "./load-env.ts";
 import { db } from "@/db/index";
 import { predictions } from "@/db/schema";
+
+import { ensureSeedUsers } from "./seed-users";
 
 const API_BASE_URL = process.env.WORLDCUP_API_URL ?? "https://worldcup26.ir";
 
@@ -17,6 +18,8 @@ type SeedPrediction = {
   matchId: number;
   userId: string;
 };
+
+type SkillTier = "average" | "elite" | "good" | "poor";
 
 async function fetchFinishedGames(): Promise<FinishedGame[]> {
   const response = await fetch(`${API_BASE_URL}/get/games`, {
@@ -52,36 +55,112 @@ async function fetchFinishedGames(): Promise<FinishedGame[]> {
     .toSorted((a, b) => a.id - b.id);
 }
 
-function buildVariedPrediction(
-  actualHome: number,
-  actualAway: number,
-  index: number,
-): { awayScore: number; homeScore: number } {
-  const pattern = index % 4;
+function exactScore(home: number, away: number) {
+  return { awayScore: away, homeScore: home };
+}
 
-  switch (pattern) {
-    case 0: {
-      return { awayScore: actualAway, homeScore: actualHome };
-    }
-    case 1: {
-      return {
-        awayScore: actualAway,
-        homeScore: actualHome === actualAway ? actualHome + 1 : actualHome,
-      };
-    }
-    case 2: {
-      return {
-        awayScore: actualAway + 1,
-        homeScore: actualHome + 1,
-      };
-    }
-    default: {
-      return {
-        awayScore: actualAway === 0 ? 1 : actualAway - 1,
-        homeScore: actualHome === 0 ? 1 : actualHome - 1,
-      };
-    }
+function outcomeScore(home: number, away: number) {
+  if (home === away) {
+    return { awayScore: away, homeScore: home + 1 };
   }
+
+  if (home > away) {
+    return { awayScore: away + 1, homeScore: home };
+  }
+
+  return { awayScore: away, homeScore: home + 1 };
+}
+
+function missScore(home: number, away: number, gameIndex: number) {
+  const variants = [
+    { awayScore: away + 1, homeScore: home + 1 },
+    {
+      awayScore: away === 0 ? 1 : away - 1,
+      homeScore: home === 0 ? 1 : home - 1,
+    },
+    { awayScore: away + 2, homeScore: home },
+    { awayScore: away, homeScore: home + 2 },
+  ];
+
+  return variants[gameIndex % variants.length] ?? variants[0];
+}
+
+function buildPredictionForTier({
+  away,
+  gameIndex,
+  home,
+  tier,
+  userIndex,
+}: {
+  away: number;
+  gameIndex: number;
+  home: number;
+  tier: SkillTier;
+  userIndex: number;
+}): { awayScore: number; homeScore: number } {
+  const roll = (gameIndex * 17 + userIndex * 11) % 10;
+
+  if (tier === "elite") {
+    if (roll < 5) {
+      return exactScore(home, away);
+    }
+
+    if (roll < 8) {
+      return outcomeScore(home, away);
+    }
+
+    return missScore(home, away, gameIndex);
+  }
+
+  if (tier === "good") {
+    if (roll < 2) {
+      return exactScore(home, away);
+    }
+
+    if (roll < 6) {
+      return outcomeScore(home, away);
+    }
+
+    return missScore(home, away, gameIndex);
+  }
+
+  if (tier === "average") {
+    if (roll < 1) {
+      return exactScore(home, away);
+    }
+
+    if (roll < 4) {
+      return outcomeScore(home, away);
+    }
+
+    return missScore(home, away, gameIndex);
+  }
+
+  if (roll < 3) {
+    return outcomeScore(home, away);
+  }
+
+  return missScore(home, away, gameIndex);
+}
+
+function shouldSkipMatch({
+  gameIndex,
+  tier,
+  userIndex,
+}: {
+  gameIndex: number;
+  tier: SkillTier;
+  userIndex: number;
+}): boolean {
+  if (tier === "elite" || tier === "good") {
+    return false;
+  }
+
+  if (tier === "average") {
+    return (gameIndex + userIndex) % 7 === 0;
+  }
+
+  return (gameIndex + userIndex) % 4 === 0;
 }
 
 async function main() {
@@ -92,27 +171,34 @@ async function main() {
     return;
   }
 
-  const users = await db.select({ id: user.id, name: user.name }).from(user);
-
-  if (users.length === 0) {
-    throw new Error("No users in database. Sign in first to create a user.");
-  }
-
+  const seedUsers = await ensureSeedUsers();
   const seedRows: SeedPrediction[] = [];
 
   for (const [index, game] of finishedGames.entries()) {
-    for (const [userIndex, dbUser] of users.entries()) {
-      const tip = buildVariedPrediction(
-        game.homeScore,
-        game.awayScore,
-        index + userIndex,
-      );
+    for (const [userIndex, seedUser] of seedUsers.entries()) {
+      if (
+        shouldSkipMatch({
+          gameIndex: index,
+          tier: seedUser.tier,
+          userIndex,
+        })
+      ) {
+        continue;
+      }
+
+      const tip = buildPredictionForTier({
+        away: game.awayScore,
+        gameIndex: index,
+        home: game.homeScore,
+        tier: seedUser.tier,
+        userIndex,
+      });
 
       seedRows.push({
         awayScore: tip.awayScore,
         homeScore: tip.homeScore,
         matchId: game.id,
-        userId: dbUser.id,
+        userId: seedUser.id,
       });
     }
   }
@@ -145,12 +231,15 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${seedRows.length} predictions across ${finishedGames.length} finished matches.`,
+    `Ensured ${seedUsers.length} seed users and ${seedRows.length} predictions across ${finishedGames.length} finished matches.`,
   );
 
-  for (const dbUser of users) {
-    console.log(`${dbUser.name}: ${byUser.get(dbUser.id) ?? 0} predictions`);
+  for (const seedUser of seedUsers) {
+    console.log(
+      `${seedUser.name} (${seedUser.tier}): ${byUser.get(seedUser.id) ?? 0} predictions`,
+    );
   }
+
   console.log(
     "Sample match IDs:",
     finishedGames

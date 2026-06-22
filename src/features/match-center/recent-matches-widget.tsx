@@ -1,6 +1,6 @@
 import type { EnrichedMatch } from "./build-matches";
 
-import { Clock02Icon } from "@hugeicons/core-free-icons";
+import { Clock02Icon, UnavailableIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "@tanstack/react-router";
 import { Image } from "@unpic/react";
@@ -66,17 +66,26 @@ function RecentMatchRow({ match }: { readonly match: EnrichedMatch }) {
         score={game.awayScore}
       />
 
-      <Show when={prediction}>
-        {(tip) => (
-          <p className="text-[10px] text-muted-foreground">
-            Your tip:{" "}
-            <span className="text-foreground">
-              {tip.homeScore} - {tip.awayScore}
+      <p className="text-[10px] text-muted-foreground">
+        <Show
+          when={prediction}
+          fallback={
+            <span className="flex items-center gap-1">
+              <HugeiconsIcon icon={UnavailableIcon} size={10} /> No tip
             </span>
-            {tipLabel ? ` (${tipLabel})` : null}
-          </p>
-        )}
-      </Show>
+          }
+        >
+          {(tip) => (
+            <>
+              Your tip:{" "}
+              <span className="text-foreground">
+                {tip.homeScore} - {tip.awayScore}
+              </span>
+              {tipLabel ? ` (${tipLabel})` : null}
+            </>
+          )}
+        </Show>
+      </p>
     </div>
   );
 }
