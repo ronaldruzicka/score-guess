@@ -16,6 +16,7 @@ import { Route as ProtectedMatchCenterIndexRouteImport } from './routes/_protect
 import { Route as ProtectedLeaderboardIndexRouteImport } from './routes/_protected/leaderboard/index'
 import { Route as ProtectedDashboardIndexRouteImport } from './routes/_protected/dashboard/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ProtectedMatchCenterRecentRouteImport } from './routes/_protected/match-center/recent'
 
 const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
   id: '/_protected',
@@ -53,9 +54,16 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedMatchCenterRecentRoute =
+  ProtectedMatchCenterRecentRouteImport.update({
+    id: '/match-center/recent',
+    path: '/match-center/recent',
+    getParentRoute: () => ProtectedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/match-center/recent': typeof ProtectedMatchCenterRecentRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/': typeof ProtectedDashboardIndexRoute
   '/leaderboard/': typeof ProtectedLeaderboardIndexRoute
@@ -64,6 +72,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/match-center/recent': typeof ProtectedMatchCenterRecentRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard': typeof ProtectedDashboardIndexRoute
   '/leaderboard': typeof ProtectedLeaderboardIndexRoute
@@ -74,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteRouteWithChildren
+  '/_protected/match-center/recent': typeof ProtectedMatchCenterRecentRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_protected/dashboard/': typeof ProtectedDashboardIndexRoute
   '/_protected/leaderboard/': typeof ProtectedLeaderboardIndexRoute
@@ -84,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/match-center/recent'
     | '/api/auth/$'
     | '/dashboard/'
     | '/leaderboard/'
@@ -92,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/match-center/recent'
     | '/api/auth/$'
     | '/dashboard'
     | '/leaderboard'
@@ -101,6 +113,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_protected'
+    | '/_protected/match-center/recent'
     | '/api/auth/$'
     | '/_protected/dashboard/'
     | '/_protected/leaderboard/'
@@ -165,10 +178,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/match-center/recent': {
+      id: '/_protected/match-center/recent'
+      path: '/match-center/recent'
+      fullPath: '/match-center/recent'
+      preLoaderRoute: typeof ProtectedMatchCenterRecentRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
   }
 }
 
 interface ProtectedRouteRouteChildren {
+  ProtectedMatchCenterRecentRoute: typeof ProtectedMatchCenterRecentRoute
   ProtectedDashboardIndexRoute: typeof ProtectedDashboardIndexRoute
   ProtectedLeaderboardIndexRoute: typeof ProtectedLeaderboardIndexRoute
   ProtectedMatchCenterIndexRoute: typeof ProtectedMatchCenterIndexRoute
@@ -176,6 +197,7 @@ interface ProtectedRouteRouteChildren {
 }
 
 const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
+  ProtectedMatchCenterRecentRoute: ProtectedMatchCenterRecentRoute,
   ProtectedDashboardIndexRoute: ProtectedDashboardIndexRoute,
   ProtectedLeaderboardIndexRoute: ProtectedLeaderboardIndexRoute,
   ProtectedMatchCenterIndexRoute: ProtectedMatchCenterIndexRoute,

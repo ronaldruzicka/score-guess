@@ -125,7 +125,7 @@ function TeamColumn({
           isRight ? "items-start" : "items-end",
         )}
       >
-        <p className="font-heading text-xl font-bold">{team.name}</p>
+        <h3 className="font-heading text-xl font-bold">{team.name}</h3>
       </div>
     </div>
   );

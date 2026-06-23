@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { STADIUM_TIMEZONE_BY_ID } from "./stadium-timezones";
+import { parseStadiumKickoff } from "./parse-stadium-kickoff";
 
 /**
  * The worldcup26.ir API returns nearly everything as strings
@@ -29,93 +29,6 @@ const stringBoolean = z
 const nullableString = z
   .string()
   .transform((value) => (value === "null" ? null : value));
-
-// Matches "06/11/2026 13:00" (MM/DD/YYYY HH:mm, stadium-local time).
-const LOCAL_DATE_PATTERN = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/u;
-
-function readDateTimePart(
-  parts: Intl.DateTimeFormatPart[],
-  type: Intl.DateTimeFormatPartTypes,
-): number {
-  const value = parts.find((part) => part.type === type)?.value;
-  const parsed = Number(value);
-
-  if (type === "hour" && parsed === 24) {
-    return 0;
-  }
-
-  return parsed;
-}
-
-/**
- * Converts the API's stadium-local kickoff string to a UTC instant using the
- * venue's IANA time zone (see {@link STADIUM_TIMEZONE_BY_ID}).
- */
-function parseStadiumKickoff(localDate: string, stadiumId: number): Date {
-  const timeZone = STADIUM_TIMEZONE_BY_ID[stadiumId];
-
-  if (!timeZone) {
-    throw new Error(`Unknown stadium timezone for id ${stadiumId}`);
-  }
-
-  const match = LOCAL_DATE_PATTERN.exec(localDate);
-
-  if (!match) {
-    throw new Error(`Unexpected match date format: ${localDate}`);
-  }
-
-  const [, month, day, year, hours, minutes] = match;
-  const targetYear = Number(year);
-  const targetMonth = Number(month);
-  const targetDay = Number(day);
-  const targetHour = Number(hours);
-  const targetMinute = Number(minutes);
-
-  let utc = Date.UTC(
-    targetYear,
-    targetMonth - 1,
-    targetDay,
-    targetHour,
-    targetMinute,
-  );
-
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-    hour: "numeric",
-    hour12: false,
-    minute: "numeric",
-    month: "numeric",
-    timeZone,
-    year: "numeric",
-  });
-
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const parts = formatter.formatToParts(new Date(utc));
-    const zonedMs = Date.UTC(
-      readDateTimePart(parts, "year"),
-      readDateTimePart(parts, "month") - 1,
-      readDateTimePart(parts, "day"),
-      readDateTimePart(parts, "hour"),
-      readDateTimePart(parts, "minute"),
-    );
-    const targetMs = Date.UTC(
-      targetYear,
-      targetMonth - 1,
-      targetDay,
-      targetHour,
-      targetMinute,
-    );
-    const diffMs = targetMs - zonedMs;
-
-    if (diffMs === 0) {
-      break;
-    }
-
-    utc += diffMs;
-  }
-
-  return new Date(utc);
-}
 
 export const timeElapsedSchema = z.enum(["upcoming", "live", "finished"]);
 
@@ -297,6 +210,7 @@ export type MatchScore = Pick<Game, "awayScore" | "homeScore">;
 
 /** Team row for match UI, derived from {@link Team}. */
 export type MatchTeam = Pick<Team, "name"> & {
+  code: string;
   flag: Team["flag"] | null;
 };
 

@@ -32,26 +32,6 @@ const kickoffFormatter = new Intl.DateTimeFormat(undefined, {
   weekday: "short",
 });
 
-export function formatKickoff(localDate: string): string {
-  const match = LOCAL_DATE_PATTERN.exec(localDate);
-
-  if (!match) {
-    return localDate;
-  }
-
-  const [, month, day, year, hours, minutes] = match;
-
-  return kickoffFormatter.format(
-    new Date(
-      Number(year),
-      Number(month) - 1,
-      Number(day),
-      Number(hours),
-      Number(minutes),
-    ),
-  );
-}
-
 function formatDateHeading(localDate: string): string {
   const match = LOCAL_DATE_PATTERN.exec(localDate);
 
@@ -69,6 +49,20 @@ function formatDateHeading(localDate: string): string {
   }).format(new Date(Number(year), Number(month) - 1, Number(day)));
 }
 
+function teamCode(name: string): string {
+  const words = name.trim().split(/\s+/u);
+
+  if (words.length >= 2) {
+    return words
+      .map((word) => word.at(0) ?? "")
+      .join("")
+      .slice(0, 3)
+      .toUpperCase();
+  }
+
+  return name.slice(0, 3).toUpperCase();
+}
+
 function resolveTeam({
   fallbackName,
   label,
@@ -79,14 +73,16 @@ function resolveTeam({
   team: Team | undefined;
 }): MatchTeam {
   if (team) {
-    return { flag: team.flag, name: team.name };
+    return { code: team.fifaCode, flag: team.flag, name: team.name };
   }
 
   if (label) {
-    return { flag: null, name: label };
+    return { code: teamCode(label), flag: null, name: label };
   }
 
-  return { flag: null, name: fallbackName ?? "TBD" };
+  const name = fallbackName ?? "TBD";
+
+  return { code: teamCode(name), flag: null, name };
 }
 
 function enrichMatch({
@@ -264,6 +260,32 @@ export function filterActiveMatches(matches: EnrichedMatch[]): EnrichedMatch[] {
 
       return a.game.kickoff.getTime() - b.game.kickoff.getTime();
     });
+}
+
+/** All finished matches, newest first. */
+export function filterFinishedMatches(
+  matches: EnrichedMatch[],
+): EnrichedMatch[] {
+  return matches
+    .filter((match) => match.game.timeElapsed === "finished")
+    .toSorted((a, b) => b.game.kickoff.getTime() - a.game.kickoff.getTime());
+}
+
+export function findDefaultFinishedStageTab(
+  matches: EnrichedMatch[],
+  tabs: StageTab[],
+): string {
+  const [mostRecent] = filterFinishedMatches(matches);
+
+  if (mostRecent) {
+    const tab = tabs.find((tab) => tab.types.includes(mostRecent.game.type));
+
+    if (tab) {
+      return tab.id;
+    }
+  }
+
+  return tabs.at(0)?.id ?? "group";
 }
 
 /** Finished matches whose estimated end time falls within the last 24 hours. */

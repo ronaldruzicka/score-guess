@@ -1,6 +1,8 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LeaderboardPodium } from "@/features/leaderboard/leaderboard-podium";
@@ -60,14 +62,47 @@ function RouteComponent() {
   );
 }
 
-function LeaderboardError({ error }: { readonly error: Error }) {
+function LeaderboardError({
+  error,
+  reset,
+}: {
+  readonly error: Error;
+  readonly reset: () => void;
+}) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const retry = async () => {
+    setIsRetrying(true);
+    try {
+      await queryClient.resetQueries({
+        queryKey: leaderboardQueryOptions.queryKey,
+      });
+      await router.invalidate();
+      reset();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   return (
     <Card>
       <CardContent className="py-8 text-center text-muted-foreground">
-        Leaderboard is unavailable right now. Please try again later.
+        <p>Leaderboard is unavailable right now. Please try again later.</p>
         {import.meta.env.DEV ? (
           <p className="mt-2 text-xs text-destructive">{error.message}</p>
         ) : null}
+        <Button
+          disabled={isRetrying}
+          onClick={() => {
+            void retry();
+          }}
+          type="button"
+          variant="outline"
+        >
+          {isRetrying ? "Retrying…" : "Try again"}
+        </Button>
       </CardContent>
     </Card>
   );

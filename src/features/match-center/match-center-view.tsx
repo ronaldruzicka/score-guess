@@ -63,17 +63,17 @@ export function MatchCenterView() {
 
   const recentMatches = useMemo(() => getRecentMatches(matches), [matches]);
 
-  const subtitle = activeStageTab?.subtitle ?? "Knockout Stage";
-
   return (
-    <div className="grid gap-8 xl:grid-cols-12">
+    <div className="@container/match-center grid gap-8 xl:grid-cols-12">
       <section className="flex flex-col gap-8 xl:col-span-8">
         <header className="flex flex-col gap-4 border-b border-border pb-4">
           <div>
             <h1 className="font-heading text-3xl font-black tracking-tight">
               Upcoming Matches
             </h1>
-            <p className="mt-1 text-base text-muted-foreground">{subtitle}</p>
+            <p className="mt-1 text-base text-muted-foreground">
+              {activeStageTab?.subtitle}
+            </p>
           </div>
           <Tabs onValueChange={setActiveTab} value={activeTab}>
             <TabsList className="w-full overflow-x-auto">
@@ -97,7 +97,7 @@ export function MatchCenterView() {
                 <h2 className="font-heading text-sm font-semibold text-muted-foreground">
                   {day.dateLabel}
                 </h2>
-                <div className="flex flex-col gap-6">
+                <div className="grid grid-cols-1 gap-6 @3xl/match-center:grid-cols-2">
                   {day.matches.map((match) => (
                     <MatchCard key={match.game.id} match={match} />
                   ))}
