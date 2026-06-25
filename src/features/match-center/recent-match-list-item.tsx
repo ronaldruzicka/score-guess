@@ -1,9 +1,20 @@
 import type { EnrichedMatch, MatchTeam } from "./build-matches";
 
+import { UnavailableIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Image } from "@unpic/react";
 
 import { Show } from "@/components/show";
-import { POINTS_EXACT, POINTS_OUTCOME } from "@/features/predictions/scoring";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  getTipResultLabel,
+  POINTS_EXACT,
+  POINTS_OUTCOME,
+} from "@/features/predictions/scoring";
 import { cn } from "@/lib/utils";
 
 import { formatMatchMeta } from "./build-matches";
@@ -18,7 +29,7 @@ function TeamFlag({ flag }: { readonly flag: MatchTeam["flag"] }) {
     return (
       <Image
         alt=""
-        className="shrink-0 rounded-xs"
+        className="h-4 w-6 shrink-0 rounded-xs @xs/recent-match:h-7 @xs/recent-match:w-[2.625rem]"
         height={28}
         layout="fixed"
         src={flag}
@@ -28,18 +39,9 @@ function TeamFlag({ flag }: { readonly flag: MatchTeam["flag"] }) {
   }
 
   return (
-    <span className="inline-flex h-7 w-10 shrink-0 items-center justify-center rounded-xs bg-muted text-[0.65rem] text-muted-foreground">
+    <span className="inline-flex h-4 w-6 shrink-0 items-center justify-center rounded-xs bg-muted text-[0.55rem] text-muted-foreground @xs/recent-match:h-7 @xs/recent-match:w-10 @xs/recent-match:text-[0.65rem]">
       ?
     </span>
-  );
-}
-
-function TeamColumn({ team }: { readonly team: MatchTeam }) {
-  return (
-    <div className="flex w-14 shrink-0 flex-col items-center gap-2">
-      <TeamFlag flag={team.flag} />
-      <span className="text-xs font-bold tracking-wide">{team.code}</span>
-    </div>
   );
 }
 
@@ -94,103 +96,204 @@ function tipToneClasses(tone: TipTone): {
   }
 }
 
-function ActScoreColumn({
-  awayScore,
-  homeScore,
-}: {
-  readonly awayScore: number;
-  readonly homeScore: number;
-}) {
-  return (
-    <div className="flex min-w-16 flex-col items-center gap-1">
-      <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground">
-        ACT
-      </span>
-      <span className="text-2xl font-black tracking-tight text-foreground tabular-nums">
-        {formatScoreLine(homeScore, awayScore)}
-      </span>
-    </div>
-  );
-}
-
-function TipScoreColumn({
-  awayScore,
-  homeScore,
-  points,
-}: {
-  readonly awayScore: number;
-  readonly homeScore: number;
-  readonly points: number | null;
-}) {
-  const tone = getTipTone(points);
-  const { label, score } = tipToneClasses(tone);
-
-  return (
-    <div className="flex min-w-16 flex-col items-center gap-1">
-      <span className={cn("text-[10px] font-bold tracking-[0.2em]", label)}>
-        TIP
-      </span>
-      <span
-        className={cn("text-2xl font-black tracking-tight tabular-nums", score)}
-      >
-        {formatScoreLine(homeScore, awayScore)}
-      </span>
-    </div>
-  );
-}
-
 export function RecentMatchListItem({
   match,
 }: {
   readonly match: EnrichedMatch;
 }) {
   const { awayTeam, game, homeTeam, points, prediction } = match;
+  const tipLabel = points === null ? null : getTipResultLabel(points);
+  const tipTone = getTipTone(points);
+  const { label: tipLabelTone, score: tipScoreTone } = tipToneClasses(tipTone);
+  const homeLost = game.homeScore < game.awayScore;
+  const awayLost = game.awayScore < game.homeScore;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      className={cn(
+        "@container/recent-match grid gap-2",
+        "grid-cols-[minmax(0,1fr)_auto]",
+        "@xs/recent-match:grid-cols-1",
+        "@xs/recent-match:gap-y-4",
+      )}
+    >
+      <p
+        className={cn(
+          "col-start-1 row-start-1 font-bold text-muted-foreground",
+          "text-[10px]",
+          "@xs/recent-match:col-span-1 @xs/recent-match:row-start-3",
+          "@xs/recent-match:text-center @xs/recent-match:text-xs",
+        )}
+      >
+        {formatMatchMeta(match)}
+      </p>
+
       <Show when={prediction !== null}>
-        <div className="flex justify-end">
+        <div
+          className={cn(
+            "col-start-2 row-start-1 flex justify-end",
+            "@xs/recent-match:col-span-1 @xs/recent-match:col-start-1",
+            "@xs/recent-match:row-start-1 @xs/recent-match:justify-center",
+          )}
+        >
           <PointsBadge points={points ?? 0} />
         </div>
       </Show>
 
-      <div className="flex items-center justify-between gap-4">
-        <TeamColumn team={homeTeam} />
+      <div
+        className={cn(
+          "contents",
+          "@xs/recent-match:col-span-1 @xs/recent-match:row-start-2",
+          "@xs/recent-match:flex @xs/recent-match:items-center",
+          "@xs/recent-match:justify-between @xs/recent-match:gap-4",
+        )}
+      >
+        <div
+          className={cn(
+            "col-start-1 row-start-2 flex min-w-0 items-center gap-3",
+            "@xs/recent-match:col-auto @xs/recent-match:row-auto",
+            "@xs/recent-match:w-14 @xs/recent-match:shrink-0",
+            "@xs/recent-match:flex-col @xs/recent-match:items-center",
+            "@xs/recent-match:gap-2",
+          )}
+        >
+          <TeamFlag flag={homeTeam.flag} />
+          <span className="truncate text-sm font-bold @xs/recent-match:hidden">
+            {homeTeam.name}
+          </span>
+          <span className="hidden text-xs font-bold tracking-wide @xs/recent-match:inline">
+            {homeTeam.code}
+          </span>
+        </div>
 
-        <div className="flex items-center justify-center gap-8 sm:gap-12">
+        <span
+          className={cn(
+            "col-start-2 row-start-2 w-8 text-center text-lg font-black tabular-nums",
+            "@xs/recent-match:hidden",
+            homeLost ? "text-muted-foreground" : "text-foreground",
+          )}
+        >
+          {game.homeScore}
+        </span>
+
+        <div
+          className={cn(
+            "hidden items-center justify-center gap-8",
+            "@xs/recent-match:col-auto @xs/recent-match:flex",
+            "@xs/recent-match:row-auto @xs/recent-match:flex-1",
+            "@[400px]/recent-match:gap-12",
+          )}
+        >
           <Show
             when={prediction}
             fallback={
-              <div className="flex min-w-16 flex-col items-center gap-1">
-                <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground">
+              <div className="flex min-w-16 flex-col items-center gap-1 text-muted-foreground">
+                <span className="text-[10px] font-bold tracking-[0.2em]">
                   TIP
                 </span>
-                <span className="text-2xl font-black text-muted-foreground">
-                  —
-                </span>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <HugeiconsIcon
+                        className="text-muted-foreground"
+                        icon={UnavailableIcon}
+                        strokeWidth={2}
+                        size={20}
+                      />
+                    }
+                  />
+                  <TooltipContent>
+                    <p>No tip submitted for this match.</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             }
           >
             {(tip) => (
-              <TipScoreColumn
-                awayScore={tip.awayScore}
-                homeScore={tip.homeScore}
-                points={points}
-              />
+              <div className="flex min-w-16 flex-col items-center gap-1">
+                <span
+                  className={cn(
+                    "text-[10px] font-bold tracking-[0.2em]",
+                    tipLabelTone,
+                  )}
+                >
+                  TIP
+                </span>
+                <span
+                  className={cn(
+                    "text-2xl font-black tracking-tight tabular-nums",
+                    tipScoreTone,
+                  )}
+                >
+                  {formatScoreLine(tip.homeScore, tip.awayScore)}
+                </span>
+              </div>
             )}
           </Show>
 
-          <ActScoreColumn
-            awayScore={game.awayScore}
-            homeScore={game.homeScore}
-          />
+          <div className="flex min-w-16 flex-col items-center gap-1">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground">
+              ACT
+            </span>
+            <span className="text-2xl font-black tracking-tight text-foreground tabular-nums">
+              {formatScoreLine(game.homeScore, game.awayScore)}
+            </span>
+          </div>
         </div>
 
-        <TeamColumn team={awayTeam} />
+        <div
+          className={cn(
+            "col-start-1 row-start-3 flex min-w-0 items-center gap-3",
+            "@xs/recent-match:col-auto @xs/recent-match:row-auto",
+            "@xs/recent-match:w-14 @xs/recent-match:shrink-0",
+            "@xs/recent-match:flex-col @xs/recent-match:items-center",
+            "@xs/recent-match:gap-2",
+          )}
+        >
+          <TeamFlag flag={awayTeam.flag} />
+          <span className="truncate text-sm font-bold @xs/recent-match:hidden">
+            {awayTeam.name}
+          </span>
+          <span className="hidden text-xs font-bold tracking-wide @xs/recent-match:inline">
+            {awayTeam.code}
+          </span>
+        </div>
+
+        <span
+          className={cn(
+            "col-start-2 row-start-3 w-8 text-center text-lg font-black tabular-nums",
+            "@xs/recent-match:hidden",
+            awayLost ? "text-muted-foreground" : "text-foreground",
+          )}
+        >
+          {game.awayScore}
+        </span>
       </div>
 
-      <p className="text-center text-xs text-muted-foreground">
-        {formatMatchMeta(match)}
+      <p
+        className={cn(
+          "col-span-2 row-start-4 text-[10px] text-muted-foreground",
+          "@xs/recent-match:hidden",
+        )}
+      >
+        <Show
+          when={prediction}
+          fallback={
+            <span className="flex items-center gap-1">
+              <HugeiconsIcon icon={UnavailableIcon} size={10} /> No tip
+            </span>
+          }
+        >
+          {(tip) => (
+            <>
+              Your tip:{" "}
+              <span className="text-foreground">
+                {tip.homeScore} - {tip.awayScore}
+              </span>
+              {tipLabel ? ` (${tipLabel})` : null}
+            </>
+          )}
+        </Show>
       </p>
     </div>
   );

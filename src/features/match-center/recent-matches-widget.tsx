@@ -7,7 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-import { RecentMatchRow } from "./recent-match-row";
+import { RecentMatchListItem } from "./recent-match-list-item";
 
 export function RecentMatchesWidget({
   matches,
@@ -45,7 +45,7 @@ export function RecentMatchesWidget({
               key={match.game.id}
               className={cn("px-4 py-4", index > 0 && "border-t border-border")}
             >
-              <RecentMatchRow match={match} />
+              <RecentMatchListItem match={match} />
             </div>
           ))
         )}
