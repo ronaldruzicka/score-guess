@@ -3,6 +3,7 @@ import type {
   EnrichedMatch,
   Game,
   GameType,
+  Group,
   MatchDay,
   MatchScore,
   MatchTeam,
@@ -12,6 +13,7 @@ import type {
 import type { StageTab } from "./constants";
 
 import { scorePrediction } from "@/features/predictions/scoring";
+import { buildGroupStandings } from "@/features/standings/build-standings";
 
 export type {
   EnrichedMatch,
@@ -316,4 +318,91 @@ export function formatMatchMeta(match: EnrichedMatch): string {
       : match.game.type.toUpperCase();
 
   return `${stage} • FINISHED`;
+}
+
+export function findTeamByMatchTeam(
+  matchTeam: MatchTeam,
+  teams: Team[],
+): Team | undefined {
+  return teams.find(
+    (team) => team.name === matchTeam.name || team.fifaCode === matchTeam.code,
+  );
+}
+
+export function findTeamGroupRank(
+  teamId: number,
+  groups: Group[],
+  teams: Team[],
+): { groupName: string; position: number } | null {
+  const standings = buildGroupStandings(groups, teams);
+
+  for (const group of standings) {
+    const row = group.rows.find((standing) => standing.teamId === teamId);
+
+    if (row) {
+      return { groupName: group.name, position: row.position };
+    }
+  }
+
+  return null;
+}
+
+export function getTeamFinishedMatches(
+  matches: EnrichedMatch[],
+  teamId: number,
+  {
+    excludeMatchId,
+    limit = 3,
+  }: { excludeMatchId?: number; limit?: number } = {},
+): EnrichedMatch[] {
+  return matches
+    .filter(
+      (match) =>
+        match.game.timeElapsed === "finished" &&
+        match.game.id !== excludeMatchId &&
+        (match.game.homeTeamId === teamId || match.game.awayTeamId === teamId),
+    )
+    .toSorted((a, b) => b.game.kickoff.getTime() - a.game.kickoff.getTime())
+    .slice(0, limit);
+}
+
+function getTeamMatchScoreResult(
+  teamScore: number,
+  opponentScore: number,
+): TeamMatchResult["result"] {
+  if (teamScore > opponentScore) {
+    return "W";
+  }
+
+  if (teamScore < opponentScore) {
+    return "L";
+  }
+
+  return "D";
+}
+
+export type TeamMatchResult = {
+  opponentFlag: MatchTeam["flag"];
+  opponentName: string;
+  opponentScore: number;
+  result: "D" | "L" | "W";
+  teamScore: number;
+};
+
+export function getTeamMatchResult(
+  match: EnrichedMatch,
+  teamId: number,
+): TeamMatchResult {
+  const isHome = match.game.homeTeamId === teamId;
+  const teamScore = isHome ? match.game.homeScore : match.game.awayScore;
+  const opponentScore = isHome ? match.game.awayScore : match.game.homeScore;
+  const opponent = isHome ? match.awayTeam : match.homeTeam;
+
+  return {
+    opponentFlag: opponent.flag,
+    opponentName: opponent.name,
+    opponentScore,
+    result: getTeamMatchScoreResult(teamScore, opponentScore),
+    teamScore,
+  };
 }

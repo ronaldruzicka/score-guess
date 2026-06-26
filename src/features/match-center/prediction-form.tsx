@@ -1,8 +1,15 @@
 import type { AnyFieldApi } from "@tanstack/react-form";
+import type { VariantProps } from "class-variance-authority";
 
+import type { badgeVariants } from "@/components/ui/badge";
 import type { PredictionFormInput } from "@/features/predictions/schemas";
+import type { Group, Team } from "@/lib/worldcup/schemas";
 
-import type { EnrichedMatch, MatchTeam } from "./build-matches";
+import type {
+  EnrichedMatch,
+  MatchTeam,
+  TeamMatchResult,
+} from "./build-matches";
 
 import {
   Cancel01Icon,
@@ -13,21 +20,44 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { Image } from "@unpic/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Show } from "@/components/show";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { upsertPrediction } from "@/features/predictions/functions";
 import { predictionFormSchema } from "@/features/predictions/schemas";
 import { formatFieldError } from "@/lib/format-field-error";
 import { cn } from "@/lib/utils";
+import {
+  groupsQueryOptions,
+  gamesQueryOptions,
+  teamsQueryOptions,
+} from "@/lib/worldcup/queries";
 
 import {
+  buildEnrichedMatches,
+  findTeamByMatchTeam,
+  findTeamGroupRank,
   formatCountdown,
   formatKickoffTime,
+  getTeamFinishedMatches,
+  getTeamMatchResult,
   isTippingOpen,
   shouldShowKickoffCountdown,
 } from "./build-matches";
@@ -76,14 +106,25 @@ function ScoreTip({ tip }: { readonly tip: number | undefined }) {
   );
 }
 
-function TeamFlag({ flag }: { readonly flag: MatchTeam["flag"] }) {
+function TeamFlag({
+  flag,
+  className,
+}: {
+  readonly flag: MatchTeam["flag"];
+  readonly className?: string;
+}) {
   return (
     <Show
       when={flag}
       fallback={
-        <span className="inline-flex items-center justify-center text-muted-foreground">
+        <span
+          className={cn(
+            "inline-flex items-center justify-center text-muted-foreground",
+            className,
+          )}
+        >
           <HugeiconsIcon
-            className="size-5 @xs/prediction-form:size-6"
+            className="@xs/prediction-form:width-6 width-5"
             icon={Flag02Icon}
           />
         </span>
@@ -92,8 +133,11 @@ function TeamFlag({ flag }: { readonly flag: MatchTeam["flag"] }) {
       {(flagSrc) => (
         <Image
           alt=""
-          className="size-8 rounded-xs @xs/prediction-form:size-10"
-          height={40}
+          className={cn(
+            "@xs/prediction-form:width-10 width-8 rounded-xs",
+            className,
+          )}
+          aspectRatio={3 / 2}
           layout="fixed"
           src={flagSrc}
           width={40}
@@ -103,29 +147,153 @@ function TeamFlag({ flag }: { readonly flag: MatchTeam["flag"] }) {
   );
 }
 
+function formatGroupPosition(position: number): string {
+  const remainder = position % 100;
+
+  if (remainder >= 11 && remainder <= 13) {
+    return `${position}th`;
+  }
+
+  switch (position % 10) {
+    case 1: {
+      return `${position}st`;
+    }
+    case 2: {
+      return `${position}nd`;
+    }
+    case 3: {
+      return `${position}rd`;
+    }
+    default: {
+      return `${position}th`;
+    }
+  }
+}
+
+const MatchResultBadgeVariants = new Map<
+  TeamMatchResult["result"],
+  VariantProps<typeof badgeVariants>["variant"]
+>([
+  ["D", "warning"],
+  ["L", "destructive"],
+  ["W", "success"],
+]);
+
+function MatchResultBadge({
+  result,
+}: {
+  readonly result: TeamMatchResult["result"];
+}) {
+  return (
+    <Badge
+      className="size-6 rounded-sm text-xs"
+      variant={MatchResultBadgeVariants.get(result)}
+    >
+      {result}
+    </Badge>
+  );
+}
+
+function TeamInfoPopoverContent({
+  groupRank,
+  recentMatches,
+  team,
+  teamId,
+}: {
+  readonly groupRank: { groupName: string; position: number } | null;
+  readonly recentMatches: EnrichedMatch[];
+  readonly team: MatchTeam;
+  readonly teamId: number;
+}) {
+  return (
+    <>
+      <PopoverHeader>
+        <PopoverTitle>{team.name}</PopoverTitle>
+        <Show
+          when={groupRank}
+          fallback={
+            <PopoverDescription>Group standings unavailable</PopoverDescription>
+          }
+        >
+          {(rank) => (
+            <PopoverDescription>
+              Group {rank.groupName} · {formatGroupPosition(rank.position)}
+            </PopoverDescription>
+          )}
+        </Show>
+      </PopoverHeader>
+
+      <div className="flex flex-col gap-1.5 border-t border-border/60 pt-2">
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+          Recent matches
+        </p>
+        <Show
+          when={recentMatches.length > 0}
+          fallback={
+            <p className="text-xs text-muted-foreground">No recent matches</p>
+          }
+        >
+          <ul className="flex flex-col gap-1">
+            {recentMatches.map((recentMatch) => {
+              const result = getTeamMatchResult(recentMatch, teamId);
+
+              return (
+                <li
+                  key={recentMatch.game.id}
+                  className="grid grid-cols-6 grid-rows-1 items-center justify-between gap-1 text-xs"
+                >
+                  <span className="col-span-3 inline-flex items-center gap-1 truncate text-foreground">
+                    <TeamFlag flag={result.opponentFlag} className="size-4" />
+                    {result.opponentName}
+                  </span>
+                  <span className="col-span-2 text-center font-bold tabular-nums">
+                    {result.teamScore}-{result.opponentScore}
+                  </span>
+                  <span className="col-span-1 text-right">
+                    <MatchResultBadge result={result.result} />
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </Show>
+      </div>
+    </>
+  );
+}
+
 function TeamBlock({
   align,
+  allMatches,
+  currentMatchId,
+  groups,
   team,
+  teams,
 }: {
   readonly align: "left" | "right";
+  readonly allMatches: EnrichedMatch[];
+  readonly currentMatchId: number;
+  readonly groups: Group[];
   readonly team: MatchTeam;
+  readonly teams: Team[];
 }) {
   const isRight = align === "right";
+  const resolvedTeam = findTeamByMatchTeam(team, teams);
 
-  return (
-    <div
-      className={cn(
-        "flex min-w-0 items-center gap-3",
-        isRight ? "col-start-1 row-start-3" : "col-start-1 row-start-2",
-        "@xs/prediction-form:col-auto @xs/prediction-form:row-auto",
-        "@xs/prediction-form:min-w-0 @xs/prediction-form:flex-1",
-        "@xs/prediction-form:flex-col @xs/prediction-form:gap-3",
-        "@xs/prediction-form:items-stretch",
-        isRight
-          ? "@xs/prediction-form:text-left"
-          : "@xs/prediction-form:text-right",
-      )}
-    >
+  const groupRank =
+    resolvedTeam === undefined
+      ? null
+      : findTeamGroupRank(resolvedTeam.id, groups, teams);
+
+  const recentMatches =
+    resolvedTeam === undefined
+      ? []
+      : getTeamFinishedMatches(allMatches, resolvedTeam.id, {
+          excludeMatchId: currentMatchId,
+        });
+
+  const teamContent = (
+    <>
       <div
         className={cn(
           "shrink-0",
@@ -148,6 +316,59 @@ function TeamBlock({
       >
         {team.name}
       </h3>
+    </>
+  );
+
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 items-center gap-3",
+        isRight ? "col-start-1 row-start-3" : "col-start-1 row-start-2",
+        "@xs/prediction-form:col-auto @xs/prediction-form:row-auto",
+        "@xs/prediction-form:min-w-0 @xs/prediction-form:flex-1",
+        "@xs/prediction-form:flex-col @xs/prediction-form:gap-3",
+        "@xs/prediction-form:items-stretch",
+        isRight
+          ? "@xs/prediction-form:text-left"
+          : "@xs/prediction-form:text-right",
+      )}
+    >
+      <Show when={resolvedTeam}>
+        {(teamRecord) => (
+          <Popover>
+            <PopoverTrigger
+              closeDelay={150}
+              delay={200}
+              nativeButton={false}
+              openOnHover
+              render={
+                <div
+                  className={cn(
+                    "flex min-w-0 cursor-default items-center gap-3",
+                    "@xs/prediction-form:flex-col @xs/prediction-form:gap-3",
+                    "@xs/prediction-form:items-stretch",
+                  )}
+                />
+              }
+            >
+              {teamContent}
+            </PopoverTrigger>
+            <PopoverContent
+              align={isRight ? "start" : "end"}
+              className="w-64"
+              side="top"
+            >
+              <TeamInfoPopoverContent
+                groupRank={groupRank}
+                recentMatches={recentMatches}
+                team={team}
+                teamId={teamRecord.id}
+              />
+            </PopoverContent>
+          </Popover>
+        )}
+      </Show>
+      <Show when={!resolvedTeam}>{teamContent}</Show>
     </div>
   );
 }
@@ -194,6 +415,20 @@ export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
   const [isEditing, setIsEditing] = useState(false);
   const isFormEditable = tippingOpen && (!hasPrediction || isEditing);
   const queryClient = useQueryClient();
+  const { data: games } = useSuspenseQuery(gamesQueryOptions);
+  const { data: teams } = useSuspenseQuery(teamsQueryOptions);
+  const { data: groups } = useSuspenseQuery(groupsQueryOptions);
+  const { data: predictions } = useSuspenseQuery(myPredictionsQueryOptions);
+
+  const allMatches = useMemo(
+    () =>
+      buildEnrichedMatches({
+        games,
+        predictions,
+        teams,
+      }),
+    [games, predictions, teams],
+  );
 
   const mutation = useMutation({
     mutationFn: (value: { awayScore: number; homeScore: number }) =>
@@ -273,7 +508,14 @@ export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
             "@xs/prediction-form:justify-between @xs/prediction-form:gap-4",
           )}
         >
-          <TeamBlock align="left" team={homeTeam} />
+          <TeamBlock
+            align="left"
+            allMatches={allMatches}
+            currentMatchId={game.id}
+            groups={groups}
+            team={homeTeam}
+            teams={teams}
+          />
 
           <div
             className={cn(
@@ -360,7 +602,14 @@ export function PredictionForm({ match }: { readonly match: EnrichedMatch }) {
             />
           </div>
 
-          <TeamBlock align="right" team={awayTeam} />
+          <TeamBlock
+            align="right"
+            allMatches={allMatches}
+            currentMatchId={game.id}
+            groups={groups}
+            team={awayTeam}
+            teams={teams}
+          />
         </div>
       </div>
 

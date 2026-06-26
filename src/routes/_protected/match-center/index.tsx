@@ -10,7 +10,11 @@ import {
   leaderboardQueryOptions,
   myPredictionsQueryOptions,
 } from "@/features/match-center/queries";
-import { gamesQueryOptions, teamsQueryOptions } from "@/lib/worldcup/queries";
+import {
+  gamesQueryOptions,
+  groupsQueryOptions,
+  teamsQueryOptions,
+} from "@/lib/worldcup/queries";
 
 function MatchCenterSkeleton() {
   return (
@@ -91,6 +95,7 @@ export const Route = createFileRoute("/_protected/match-center/")({
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(gamesQueryOptions),
+      context.queryClient.ensureQueryData(groupsQueryOptions),
       context.queryClient.ensureQueryData(teamsQueryOptions),
       context.queryClient.ensureQueryData(myPredictionsQueryOptions),
     ]);

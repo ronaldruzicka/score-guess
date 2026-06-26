@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { EnrichedMatch, MatchTeam } from "./build-matches";
 
 import { UnavailableIcon } from "@hugeicons/core-free-icons";
@@ -29,7 +31,7 @@ function TeamFlag({ flag }: { readonly flag: MatchTeam["flag"] }) {
     return (
       <Image
         alt=""
-        className="h-4 w-6 shrink-0 rounded-xs @xs/recent-match:h-7 @xs/recent-match:w-[2.625rem]"
+        className="h-4 w-6 shrink-0 rounded-xs @xs/recent-match:h-7 @xs/recent-match:w-10.5"
         height={28}
         layout="fixed"
         src={flag}
@@ -63,6 +65,20 @@ function getTipTone(points: number | null): TipTone {
   return "miss";
 }
 
+function ScoreColumnLabel({
+  children,
+  className,
+}: {
+  readonly children: ReactNode;
+  readonly className?: string;
+}) {
+  return (
+    <span className={cn("text-[10px] font-bold tracking-[0.2em]", className)}>
+      {children}
+    </span>
+  );
+}
+
 function tipToneClasses(tone: TipTone): {
   label: string;
   score: string;
@@ -83,15 +99,14 @@ function tipToneClasses(tone: TipTone): {
     case "miss":
     case "none": {
       return {
-        label: "text-muted-foreground",
-        score: "text-muted-foreground",
+        label: "text-[color-mix(in_oklab,var(--destructive),white_25%)]",
+        score: "text-[color-mix(in_oklab,var(--destructive),white_25%)]",
       };
     }
     default: {
-      return {
-        label: "text-muted-foreground",
-        score: "text-muted-foreground",
-      };
+      // Exhaustiveness check for TypeScript
+      const _exhaustiveCheck: never = tone;
+      return _exhaustiveCheck;
     }
   }
 }
@@ -178,7 +193,7 @@ export function RecentMatchListItem({
 
         <div
           className={cn(
-            "hidden items-center justify-center gap-8",
+            "hidden items-start justify-center gap-8",
             "@xs/recent-match:col-auto @xs/recent-match:flex",
             "@xs/recent-match:row-auto @xs/recent-match:flex-1",
             "@[400px]/recent-match:gap-12",
@@ -188,9 +203,7 @@ export function RecentMatchListItem({
             when={prediction}
             fallback={
               <div className="flex min-w-16 flex-col items-center gap-1 text-muted-foreground">
-                <span className="text-[10px] font-bold tracking-[0.2em]">
-                  TIP
-                </span>
+                <ScoreColumnLabel>TIP</ScoreColumnLabel>
                 <Tooltip>
                   <TooltipTrigger
                     render={
@@ -211,14 +224,9 @@ export function RecentMatchListItem({
           >
             {(tip) => (
               <div className="flex min-w-16 flex-col items-center gap-1">
-                <span
-                  className={cn(
-                    "text-[10px] font-bold tracking-[0.2em]",
-                    tipLabelTone,
-                  )}
-                >
+                <ScoreColumnLabel className={tipLabelTone}>
                   TIP
-                </span>
+                </ScoreColumnLabel>
                 <span
                   className={cn(
                     "text-2xl font-black tracking-tight tabular-nums",
@@ -232,9 +240,9 @@ export function RecentMatchListItem({
           </Show>
 
           <div className="flex min-w-16 flex-col items-center gap-1">
-            <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground">
+            <ScoreColumnLabel className="text-muted-foreground">
               ACT
-            </span>
+            </ScoreColumnLabel>
             <span className="text-2xl font-black tracking-tight text-foreground tabular-nums">
               {formatScoreLine(game.homeScore, game.awayScore)}
             </span>
