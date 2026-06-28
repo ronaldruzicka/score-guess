@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedStandingsIndexRouteImport } from './routes/_protected/standings/index'
+import { Route as ProtectedMyTipsIndexRouteImport } from './routes/_protected/my-tips/index'
 import { Route as ProtectedMatchCenterIndexRouteImport } from './routes/_protected/match-center/index'
 import { Route as ProtectedLeaderboardIndexRouteImport } from './routes/_protected/leaderboard/index'
 import { Route as ProtectedDashboardIndexRouteImport } from './routes/_protected/dashboard/index'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const ProtectedStandingsIndexRoute = ProtectedStandingsIndexRouteImport.update({
   id: '/standings/',
   path: '/standings/',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
+const ProtectedMyTipsIndexRoute = ProtectedMyTipsIndexRouteImport.update({
+  id: '/my-tips/',
+  path: '/my-tips/',
   getParentRoute: () => ProtectedRouteRoute,
 } as any)
 const ProtectedMatchCenterIndexRoute =
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof ProtectedDashboardIndexRoute
   '/leaderboard/': typeof ProtectedLeaderboardIndexRoute
   '/match-center/': typeof ProtectedMatchCenterIndexRoute
+  '/my-tips/': typeof ProtectedMyTipsIndexRoute
   '/standings/': typeof ProtectedStandingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof ProtectedDashboardIndexRoute
   '/leaderboard': typeof ProtectedLeaderboardIndexRoute
   '/match-center': typeof ProtectedMatchCenterIndexRoute
+  '/my-tips': typeof ProtectedMyTipsIndexRoute
   '/standings': typeof ProtectedStandingsIndexRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/_protected/dashboard/': typeof ProtectedDashboardIndexRoute
   '/_protected/leaderboard/': typeof ProtectedLeaderboardIndexRoute
   '/_protected/match-center/': typeof ProtectedMatchCenterIndexRoute
+  '/_protected/my-tips/': typeof ProtectedMyTipsIndexRoute
   '/_protected/standings/': typeof ProtectedStandingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/leaderboard/'
     | '/match-center/'
+    | '/my-tips/'
     | '/standings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/leaderboard'
     | '/match-center'
+    | '/my-tips'
     | '/standings'
   id:
     | '__root__'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/_protected/dashboard/'
     | '/_protected/leaderboard/'
     | '/_protected/match-center/'
+    | '/_protected/my-tips/'
     | '/_protected/standings/'
   fileRoutesById: FileRoutesById
 }
@@ -148,6 +160,13 @@ declare module '@tanstack/react-router' {
       path: '/standings'
       fullPath: '/standings/'
       preLoaderRoute: typeof ProtectedStandingsIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+    '/_protected/my-tips/': {
+      id: '/_protected/my-tips/'
+      path: '/my-tips'
+      fullPath: '/my-tips/'
+      preLoaderRoute: typeof ProtectedMyTipsIndexRouteImport
       parentRoute: typeof ProtectedRouteRoute
     }
     '/_protected/match-center/': {
@@ -193,6 +212,7 @@ interface ProtectedRouteRouteChildren {
   ProtectedDashboardIndexRoute: typeof ProtectedDashboardIndexRoute
   ProtectedLeaderboardIndexRoute: typeof ProtectedLeaderboardIndexRoute
   ProtectedMatchCenterIndexRoute: typeof ProtectedMatchCenterIndexRoute
+  ProtectedMyTipsIndexRoute: typeof ProtectedMyTipsIndexRoute
   ProtectedStandingsIndexRoute: typeof ProtectedStandingsIndexRoute
 }
 
@@ -201,6 +221,7 @@ const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
   ProtectedDashboardIndexRoute: ProtectedDashboardIndexRoute,
   ProtectedLeaderboardIndexRoute: ProtectedLeaderboardIndexRoute,
   ProtectedMatchCenterIndexRoute: ProtectedMatchCenterIndexRoute,
+  ProtectedMyTipsIndexRoute: ProtectedMyTipsIndexRoute,
   ProtectedStandingsIndexRoute: ProtectedStandingsIndexRoute,
 }
 

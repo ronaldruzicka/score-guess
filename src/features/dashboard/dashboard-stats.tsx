@@ -1,5 +1,3 @@
-import type { IconSvgElement } from "@hugeicons/react";
-
 import type { LeaderboardRow } from "@/features/predictions/functions";
 
 import {
@@ -7,44 +5,12 @@ import {
   ChartIcon,
   Target02Icon,
 } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { StatCard } from "@/components/stat-card";
 import {
   formatAccuracy,
   formatLeaderboardPoints,
 } from "@/features/leaderboard/leaderboard-utils";
-import { cn } from "@/lib/utils";
-
-type StatBoxProps = {
-  readonly icon: IconSvgElement;
-  readonly label: string;
-  readonly subtext?: string;
-  readonly value: string;
-};
-
-function StatBox({ icon, label, subtext, value }: StatBoxProps) {
-  return (
-    <Card className="relative min-h-[162px] overflow-hidden border-border bg-card py-0 ring-0">
-      <HugeiconsIcon
-        className="pointer-events-none absolute top-0 right-0 size-20 text-muted-foreground/10"
-        icon={icon}
-        strokeWidth={1.5}
-      />
-      <CardContent className="relative flex h-full flex-col justify-between gap-1 p-6">
-        <div className="flex items-start justify-between gap-4">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        </div>
-        <p className="font-heading text-4xl leading-10 font-black tracking-tight text-foreground">
-          {value}
-        </p>
-        {subtext ? (
-          <p className={cn("pt-1 text-xs text-muted-foreground")}>{subtext}</p>
-        ) : null}
-      </CardContent>
-    </Card>
-  );
-}
 
 function formatRankValue(entry: LeaderboardRow | undefined): string {
   if (!entry) {
@@ -110,32 +76,22 @@ export function DashboardStats({
       ? `${entry.exactHits + entry.correctOutcomes} of ${entry.scoredPredictions} predictions earning points`
       : undefined;
 
+  const rankSubtext = formatRankSubtext(entry, totalPlayers);
+
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-      <StatBox
-        icon={Award04Icon}
-        label="Points"
-        subtext={pointsSubtext}
-        value={points}
-      />
-      <StatBox
-        icon={ChartIcon}
-        label="Rank"
-        subtext={formatRankSubtext(entry, totalPlayers)}
-        value={rank}
-      />
-      <StatBox
-        icon={Target02Icon}
-        label="Exact hits"
-        subtext={exactHitsSubtext}
-        value={exactHits}
-      />
-      <StatBox
-        icon={ChartIcon}
-        label="Accuracy"
-        subtext={accuracySubtext}
-        value={accuracy}
-      />
+      <StatCard icon={Award04Icon} label="Points" value={points}>
+        <StatCard.Subtext>{pointsSubtext}</StatCard.Subtext>
+      </StatCard>
+      <StatCard icon={ChartIcon} label="Rank" value={rank}>
+        <StatCard.Subtext>{rankSubtext}</StatCard.Subtext>
+      </StatCard>
+      <StatCard icon={Target02Icon} label="Exact hits" value={exactHits}>
+        <StatCard.Subtext>{exactHitsSubtext}</StatCard.Subtext>
+      </StatCard>
+      <StatCard icon={ChartIcon} label="Accuracy" value={accuracy}>
+        <StatCard.Subtext>{accuracySubtext}</StatCard.Subtext>
+      </StatCard>
     </div>
   );
 }

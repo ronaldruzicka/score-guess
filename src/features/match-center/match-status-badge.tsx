@@ -11,11 +11,11 @@ const STATUS_LABEL: Record<TimeElapsed, string> = {
   upcoming: "Upcoming",
 };
 
-const matchStatusBadgeVariants = cva("", {
+const matchStatusBadgeVariants = cva("rounded", {
   variants: {
     timeElapsed: {
       finished: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
-      live: "bg-red-50 text-red-700 motion-safe:animate-live-badge-glow dark:bg-red-950 dark:text-red-300",
+      live: "gap-1 bg-red-50 text-red-700 motion-safe:animate-live-badge-glow dark:bg-red-950 dark:text-red-300",
       upcoming: "bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
     },
   },
@@ -30,6 +30,12 @@ export function MatchStatusBadge({
 }) {
   return (
     <Badge className={cn(matchStatusBadgeVariants({ timeElapsed }), className)}>
+      {timeElapsed === "live" ? (
+        <span
+          aria-hidden
+          className="size-1.5 shrink-0 rounded-full bg-red-400 motion-safe:animate-pulse"
+        />
+      ) : null}
       {STATUS_LABEL[timeElapsed]}
     </Badge>
   );

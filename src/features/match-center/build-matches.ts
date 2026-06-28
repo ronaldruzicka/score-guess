@@ -320,6 +320,24 @@ export function formatMatchMeta(match: EnrichedMatch): string {
   return `${stage} • FINISHED`;
 }
 
+const MATCH_STAGE_LABELS = {
+  final: "Final",
+  group: "Group",
+  qf: "Quarter-finals",
+  r16: "Round of 16",
+  r32: "Round of 32",
+  sf: "Semi-finals",
+  third: "Third place",
+} as const satisfies Record<Game["type"], string>;
+
+export function formatMatchStageLabel(match: EnrichedMatch): string {
+  if (match.game.type === "group") {
+    return `${MATCH_STAGE_LABELS.group} ${match.game.group}`;
+  }
+
+  return MATCH_STAGE_LABELS[match.game.type];
+}
+
 export function findTeamByMatchTeam(
   matchTeam: MatchTeam,
   teams: Team[],

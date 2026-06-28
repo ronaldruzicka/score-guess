@@ -3,6 +3,7 @@ import {
   ChartIcon,
   DashboardSquare02Icon,
   FootballIcon,
+  Target02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "@tanstack/react-router";
@@ -23,6 +24,11 @@ const data = [
     icon: <HugeiconsIcon icon={FootballIcon} strokeWidth={2} />,
     title: "Match Center",
     url: "/match-center",
+  },
+  {
+    icon: <HugeiconsIcon icon={Target02Icon} strokeWidth={2} />,
+    title: "My Tips",
+    url: "/my-tips",
   },
   {
     icon: <HugeiconsIcon icon={ArrangeByNumbersOneNineIcon} strokeWidth={2} />,
