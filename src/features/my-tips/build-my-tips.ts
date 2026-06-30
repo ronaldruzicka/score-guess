@@ -9,8 +9,10 @@ import {
 
 export const MY_TIPS_PAGE_SIZE = 10;
 
-const kickoffDateFormatter = new Intl.DateTimeFormat(undefined, {
+const kickoffFormatter = new Intl.DateTimeFormat(undefined, {
   day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
   month: "short",
   year: "numeric",
 });
@@ -21,8 +23,8 @@ export function filterTippedMatches(matches: EnrichedMatch[]): EnrichedMatch[] {
     .toSorted((a, b) => b.game.kickoff.getTime() - a.game.kickoff.getTime());
 }
 
-export function formatTipKickoffDate(kickoff: Date): string {
-  return kickoffDateFormatter.format(kickoff);
+export function formatTipKickoffDateTime(kickoff: Date): string {
+  return kickoffFormatter.format(kickoff);
 }
 
 export function formatScoreLine(homeScore: number, awayScore: number): string {
@@ -44,7 +46,7 @@ export function getLastFinishedTipPoints(
   return mostRecent?.points ?? null;
 }
 
-export function getLiveTipPoints(match: EnrichedMatch): number | null {
+function getLiveTipPoints(match: EnrichedMatch): number | null {
   if (match.game.timeElapsed !== "live" || !match.prediction) {
     return null;
   }
@@ -55,48 +57,62 @@ export function getLiveTipPoints(match: EnrichedMatch): number | null {
   });
 }
 
-export type TipPointsDisplay =
-  | {
-      kind: "live";
-      label: "Current match";
-      points: number;
-    }
-  | {
-      kind: "pending";
-      label: "Pending";
-    }
-  | {
-      kind: "scored";
-      label: "Exact score" | "Missed" | "Outcome";
-      points: number;
-    };
+export type TipPointsKind = "exact" | "missed" | "outcome";
 
-export function getTipPointsDisplay(match: EnrichedMatch): TipPointsDisplay {
-  if (match.game.timeElapsed === "upcoming") {
-    return { kind: "pending", label: "Pending" };
-  }
+export type TipPointsDisplay = {
+  kind: TipPointsKind;
+  points: number;
+};
 
-  if (match.game.timeElapsed === "live") {
-    const points = getLiveTipPoints(match) ?? 0;
+export const TIP_POINTS_LABELS: Record<TipPointsKind, string> = {
+  exact: "Exact score",
+  missed: "Missed",
+  outcome: "Outcome",
+};
 
-    return {
-      kind: "live",
-      label: "Current match",
-      points,
-    };
-  }
-
-  const points = match.points ?? 0;
-
+function tipPointsKindFromPoints(points: number): TipPointsKind {
   if (points === POINTS_EXACT) {
-    return { kind: "scored", label: "Exact score", points };
+    return "exact";
   }
 
   if (points === POINTS_OUTCOME) {
-    return { kind: "scored", label: "Outcome", points };
+    return "outcome";
   }
 
-  return { kind: "scored", label: "Missed", points };
+  return "missed";
+}
+
+export function getTipPointsDisplay(
+  match: EnrichedMatch,
+): TipPointsDisplay | null {
+  if (match.game.timeElapsed === "upcoming") {
+    return null;
+  }
+
+  const points =
+    match.game.timeElapsed === "live"
+      ? (getLiveTipPoints(match) ?? 0)
+      : (match.points ?? 0);
+
+  return {
+    kind: tipPointsKindFromPoints(points),
+    points,
+  };
+}
+
+export function getTipPointsLabel(
+  match: EnrichedMatch,
+  display: TipPointsDisplay | null,
+): string {
+  if (!display) {
+    return "Pending";
+  }
+
+  if (match.game.timeElapsed === "live") {
+    return "Current match";
+  }
+
+  return TIP_POINTS_LABELS[display.kind];
 }
 
 export type FinalScoreTone = "default" | "exact" | "miss" | "muted";
@@ -131,7 +147,8 @@ export function getTipsCoveragePercent(
 
   return Math.min(100, Math.round((totalTips / totalMatches) * 100));
 }
-export function formatTopPercent(rank: number, totalPlayers: number): string {
+
+function formatTopPercent(rank: number, totalPlayers: number): string {
   if (totalPlayers === 0) {
     return "—";
   }
