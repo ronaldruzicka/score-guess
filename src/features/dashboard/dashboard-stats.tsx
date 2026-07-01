@@ -6,11 +6,18 @@ import {
   Target02Icon,
 } from "@hugeicons/core-free-icons";
 
-import { StatCard } from "@/components/stat-card";
+import {
+  StatCard,
+  StatCardContent,
+  StatCardFooter,
+  StatCardHeader,
+  StatCardValue,
+} from "@/components/stat-card";
 import {
   formatAccuracy,
   formatLeaderboardPoints,
 } from "@/features/leaderboard/leaderboard-utils";
+import { cn } from "@/lib/utils";
 
 function formatRankValue(entry: LeaderboardRow | undefined): string {
   if (!entry) {
@@ -80,17 +87,39 @@ export function DashboardStats({
 
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-      <StatCard icon={Award04Icon} label="Points" value={points}>
-        <StatCard.Subtext>{pointsSubtext}</StatCard.Subtext>
+      <StatCard icon={Award04Icon}>
+        <StatCardHeader>Points</StatCardHeader>
+        <StatCardContent className={cn(!pointsSubtext && "pb-6")}>
+          <StatCardValue>{points}</StatCardValue>
+        </StatCardContent>
+        {pointsSubtext ? (
+          <StatCardFooter>{pointsSubtext}</StatCardFooter>
+        ) : null}
       </StatCard>
-      <StatCard icon={ChartIcon} label="Rank" value={rank}>
-        <StatCard.Subtext>{rankSubtext}</StatCard.Subtext>
+      <StatCard icon={ChartIcon}>
+        <StatCardHeader>Rank</StatCardHeader>
+        <StatCardContent className={cn(!rankSubtext && "pb-6")}>
+          <StatCardValue>{rank}</StatCardValue>
+        </StatCardContent>
+        {rankSubtext ? <StatCardFooter>{rankSubtext}</StatCardFooter> : null}
       </StatCard>
-      <StatCard icon={Target02Icon} label="Exact hits" value={exactHits}>
-        <StatCard.Subtext>{exactHitsSubtext}</StatCard.Subtext>
+      <StatCard icon={Target02Icon}>
+        <StatCardHeader>Exact hits</StatCardHeader>
+        <StatCardContent className={cn(!exactHitsSubtext && "pb-6")}>
+          <StatCardValue>{exactHits}</StatCardValue>
+        </StatCardContent>
+        {exactHitsSubtext ? (
+          <StatCardFooter>{exactHitsSubtext}</StatCardFooter>
+        ) : null}
       </StatCard>
-      <StatCard icon={ChartIcon} label="Accuracy" value={accuracy}>
-        <StatCard.Subtext>{accuracySubtext}</StatCard.Subtext>
+      <StatCard icon={ChartIcon}>
+        <StatCardHeader>Accuracy</StatCardHeader>
+        <StatCardContent className={cn(!accuracySubtext && "pb-6")}>
+          <StatCardValue>{accuracy}</StatCardValue>
+        </StatCardContent>
+        {accuracySubtext ? (
+          <StatCardFooter>{accuracySubtext}</StatCardFooter>
+        ) : null}
       </StatCard>
     </div>
   );

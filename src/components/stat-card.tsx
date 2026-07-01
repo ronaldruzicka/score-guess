@@ -3,13 +3,90 @@ import type { IconSvgElement } from "@hugeicons/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cva } from "class-variance-authority";
 
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-import { Show } from "./show";
+export type StatCardProps = {
+  readonly children: React.ReactNode;
+  readonly className?: string;
+  readonly icon?: IconSvgElement;
+};
 
-const statCardSubtextVariants = cva(
-  "flex items-center gap-1 pt-1 text-xs tracking-wide",
+export function StatCard({ children, className, icon }: StatCardProps) {
+  return (
+    <Card
+      className={cn(
+        "relative min-h-[162px] overflow-hidden border-border bg-card py-0 ring-0",
+        className,
+      )}
+    >
+      {icon ? (
+        <HugeiconsIcon
+          className="pointer-events-none absolute top-0 right-0 size-20 text-muted-foreground/10"
+          icon={icon}
+          strokeWidth={1.5}
+        />
+      ) : null}
+      {children}
+    </Card>
+  );
+}
+
+export type StatCardHeaderProps = {
+  readonly children: React.ReactNode;
+  readonly className?: string;
+};
+
+export function StatCardHeader({ children, className }: StatCardHeaderProps) {
+  return (
+    <CardHeader className={cn("relative px-6 pt-6", className)}>
+      <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+        {children}
+      </p>
+    </CardHeader>
+  );
+}
+
+export type StatCardContentProps = {
+  readonly children: React.ReactNode;
+  readonly className?: string;
+};
+
+export function StatCardContent({ children, className }: StatCardContentProps) {
+  return (
+    <CardContent
+      className={cn("relative flex flex-1 flex-col gap-1 px-6", className)}
+    >
+      {children}
+    </CardContent>
+  );
+}
+
+export type StatCardValueProps = {
+  readonly children: React.ReactNode;
+  readonly className?: string;
+};
+
+export function StatCardValue({ children, className }: StatCardValueProps) {
+  return (
+    <p
+      className={cn(
+        "font-heading text-4xl leading-10 font-black tracking-tight text-foreground",
+        className,
+      )}
+    >
+      {children}
+    </p>
+  );
+}
+
+const footerVariants = cva(
+  "relative flex items-center gap-1 border-t-0 px-6 pt-0 pb-6",
   {
     defaultVariants: {
       color: "default",
@@ -24,54 +101,20 @@ const statCardSubtextVariants = cva(
   },
 );
 
-type StatCardSubtextProps = {
-  readonly children: React.ReactNode | undefined;
+export type StatCardFooterProps = {
+  readonly children: React.ReactNode;
   readonly className?: string;
   readonly color?: "default" | "primary" | "success";
 };
 
-function StatCardSubtext({
+export function StatCardFooter({
   children,
   className,
   color = "default",
-}: StatCardSubtextProps) {
+}: StatCardFooterProps) {
   return (
-    <Show when={!!children}>
-      <p className={cn(statCardSubtextVariants({ color }), className)}>
-        {children}
-      </p>
-    </Show>
+    <CardFooter className={cn(footerVariants({ color }), className)}>
+      {children}
+    </CardFooter>
   );
 }
-
-export type StatCardProps = {
-  readonly children?: React.ReactNode;
-  readonly icon?: IconSvgElement;
-  readonly label: string;
-  readonly value: string;
-};
-
-export function StatCard({ children, icon, label, value }: StatCardProps) {
-  return (
-    <Card className="relative min-h-[162px] overflow-hidden border-border bg-card py-0 ring-0">
-      {icon ? (
-        <HugeiconsIcon
-          className="pointer-events-none absolute top-0 right-0 size-20 text-muted-foreground/10"
-          icon={icon}
-          strokeWidth={1.5}
-        />
-      ) : null}
-      <CardContent className="relative flex h-full flex-col justify-between gap-1 p-6">
-        <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
-          {label}
-        </p>
-        <p className="font-heading text-4xl leading-10 font-black tracking-tight text-foreground">
-          {value}
-        </p>
-        {children}
-      </CardContent>
-    </Card>
-  );
-}
-
-StatCard.Subtext = StatCardSubtext;
