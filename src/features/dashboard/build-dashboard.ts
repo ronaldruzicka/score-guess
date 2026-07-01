@@ -17,7 +17,9 @@ export function getUpcomingWithin24h(
   const cutoff = now + PREDICTION_WINDOW_MS;
 
   return filterActiveMatches(matches).filter(
-    (match) => match.game.kickoff.getTime() <= cutoff,
+    (match) =>
+      match.game.kickoff.getTime() > now &&
+      match.game.kickoff.getTime() <= cutoff,
   );
 }
 
