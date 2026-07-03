@@ -6,28 +6,31 @@ import { buildEnrichedMatches } from "@/features/match-center/build-matches";
 import { myPredictionsQueryOptions } from "@/features/match-center/queries";
 import { gamesQueryOptions, teamsQueryOptions } from "@/lib/worldcup/queries";
 
-import { BracketRoundColumn } from "./bracket-round";
+import { BracketTournamentView } from "./bracket-tournament-view";
 import {
-  buildKnockoutBracket,
-  countKnockoutMatches,
-} from "./build-bracket";
+  buildSingleEliminationMatches,
+  countSingleEliminationMatches,
+} from "./build-single-elimination-matches";
 
 export function BracketView() {
   const { data: games } = useSuspenseQuery(gamesQueryOptions);
   const { data: teams } = useSuspenseQuery(teamsQueryOptions);
   const { data: predictions } = useSuspenseQuery(myPredictionsQueryOptions);
 
-  const rounds = useMemo(() => {
-    const matches = buildEnrichedMatches({
+  const bracketData = useMemo(() => {
+    const enrichedMatches = buildEnrichedMatches({
       games,
       predictions,
       teams,
     });
+    const singleElimination = buildSingleEliminationMatches(enrichedMatches);
 
-    return buildKnockoutBracket(matches);
+    return {
+      enrichedMatches,
+      matchCount: countSingleEliminationMatches(singleElimination),
+      ...singleElimination,
+    };
   }, [games, predictions, teams]);
-
-  const matchCount = useMemo(() => countKnockoutMatches(rounds), [rounds]);
 
   return (
     <div className="@container/bracket flex flex-col gap-6">
@@ -41,7 +44,7 @@ export function BracketView() {
       </div>
 
       <Show
-        when={matchCount > 0}
+        when={bracketData.matchCount > 0}
         fallback={
           <p className="py-12 text-center text-sm text-muted-foreground">
             Knockout matches are not available yet. Check back once the group
@@ -49,13 +52,11 @@ export function BracketView() {
           </p>
         }
       >
-        <div className="overflow-x-auto pb-2">
-          <div className="flex min-w-max gap-4 @3xl/bracket:gap-6">
-            {rounds.map((round) => (
-              <BracketRoundColumn key={round.id} round={round} />
-            ))}
-          </div>
-        </div>
+        <BracketTournamentView
+          enrichedMatches={bracketData.enrichedMatches}
+          matches={bracketData.matches}
+          thirdPlaceMatch={bracketData.thirdPlaceMatch}
+        />
       </Show>
     </div>
   );

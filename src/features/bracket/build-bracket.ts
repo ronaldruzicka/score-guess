@@ -1,46 +1,101 @@
 import type { EnrichedMatch } from "@/features/match-center/build-matches";
-import { filterMatchesByStage } from "@/features/match-center/build-matches";
+import type { Game } from "@/lib/worldcup/schemas";
 
 import type { BracketRoundConfig } from "./constants";
+
+import { filterMatchesByStage } from "@/features/match-center/build-matches";
+
+import {
+  orderByParentMatches,
+  orderFinalsMatches,
+  orderR32Matches,
+} from "./bracket-order";
 import { KNOCKOUT_ROUNDS } from "./constants";
 
 export type BracketRound = {
   id: string;
-  label: string;
   matches: EnrichedMatch[];
-  subtitle: string;
 };
 
-function sortMatchesForBracket(matches: EnrichedMatch[]): EnrichedMatch[] {
-  return matches.toSorted((a, b) => {
-    const kickoffDiff = a.game.kickoff.getTime() - b.game.kickoff.getTime();
+function orderKnockoutRound({
+  allKnockoutMatches,
+  matches,
+  previousRound,
+  roundId,
+}: {
+  allKnockoutMatches: EnrichedMatch[];
+  matches: EnrichedMatch[];
+  previousRound: EnrichedMatch[];
+  roundId: string;
+}): EnrichedMatch[] {
+  if (matches.length === 0) {
+    return [];
+  }
 
-    if (kickoffDiff !== 0) {
-      return kickoffDiff;
-    }
+  if (roundId === "r32") {
+    return orderR32Matches(matches, allKnockoutMatches);
+  }
 
-    return a.game.id - b.game.id;
-  });
+  if (roundId === "finals") {
+    return orderFinalsMatches({
+      finalMatches: matches,
+      previousRound,
+    });
+  }
+
+  return orderByParentMatches(previousRound, matches);
 }
 
-function buildRound(
-  matches: EnrichedMatch[],
-  config: BracketRoundConfig,
-): BracketRound {
+function buildRound({
+  allKnockoutMatches,
+  config,
+  matches,
+  previousRound,
+}: {
+  allKnockoutMatches: EnrichedMatch[];
+  config: BracketRoundConfig;
+  matches: EnrichedMatch[];
+  previousRound: EnrichedMatch[];
+}): BracketRound {
+  const roundMatches = filterMatchesByStage(matches, config.types);
+
   return {
     id: config.id,
-    label: config.label,
-    matches: sortMatchesForBracket(
-      filterMatchesByStage(matches, config.types),
-    ),
-    subtitle: config.subtitle,
+    matches: orderKnockoutRound({
+      allKnockoutMatches,
+      matches: roundMatches,
+      previousRound,
+      roundId: config.id,
+    }),
   };
 }
 
-export function buildKnockoutBracket(
-  matches: EnrichedMatch[],
-): BracketRound[] {
-  return KNOCKOUT_ROUNDS.map((round) => buildRound(matches, round));
+export function buildKnockoutBracket(matches: EnrichedMatch[]): BracketRound[] {
+  const knockoutTypes = new Set<Game["type"]>(
+    KNOCKOUT_ROUNDS.flatMap((round) => round.types),
+  );
+  const allKnockoutMatches = matches.filter((match) =>
+    knockoutTypes.has(match.game.type),
+  );
+
+  const rounds: BracketRound[] = [];
+  let previousRound: EnrichedMatch[] = [];
+
+  for (const config of KNOCKOUT_ROUNDS) {
+    const round = buildRound({
+      allKnockoutMatches,
+      config,
+      matches,
+      previousRound,
+    });
+
+    rounds.push(round);
+    previousRound = round.matches.filter(
+      (match) => match.game.type !== "third",
+    );
+  }
+
+  return rounds;
 }
 
 export function countKnockoutMatches(rounds: BracketRound[]): number {

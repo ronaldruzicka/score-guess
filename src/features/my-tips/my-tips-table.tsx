@@ -55,7 +55,7 @@ const HEADER_ALIGN: Record<string, string> = {
 };
 
 const finalScoreToneClasses = {
-  default: "text-foreground",
+  default: "text-primary",
   exact: "text-emerald-500",
   miss: "text-destructive",
   muted: "text-muted-foreground",

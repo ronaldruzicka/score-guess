@@ -14,7 +14,7 @@ function hasLiveGame(games: Game[]): boolean {
 }
 
 export const gamesQueryOptions = queryOptions({
-  queryFn: () => getGames(),
+  queryFn: async () => await getGames(),
   queryKey: ["worldcup", "games"],
   refetchInterval: (query) => {
     const games = query.state.data;
@@ -29,19 +29,19 @@ export const gamesQueryOptions = queryOptions({
 });
 
 export const teamsQueryOptions = queryOptions({
-  queryFn: () => getTeams(),
+  queryFn: async () => await getTeams(),
   queryKey: ["worldcup", "teams"],
   staleTime: 60 * MINUTE,
 });
 
 export const groupsQueryOptions = queryOptions({
-  queryFn: () => getGroups(),
+  queryFn: async () => await getGroups(),
   queryKey: ["worldcup", "groups"],
   staleTime: 10 * MINUTE,
 });
 
 export const stadiumsQueryOptions = queryOptions({
-  queryFn: () => getStadiums(),
+  queryFn: async () => await getStadiums(),
   queryKey: ["worldcup", "stadiums"],
   staleTime: 60 * MINUTE,
 });

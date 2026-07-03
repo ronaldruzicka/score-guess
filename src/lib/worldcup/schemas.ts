@@ -21,6 +21,19 @@ const scoreString = z.string().transform((value) => {
   return Number.isFinite(parsed) ? parsed : 0;
 });
 
+const optionalPenaltyScore = z
+  .string()
+  .optional()
+  .transform((value) => {
+    if (!value || value === "null" || value.trim() === "") {
+      return null;
+    }
+
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : null;
+  });
+
 const stringBoolean = z
   .string()
   .transform((value) => value.toLowerCase() === "true");
@@ -47,6 +60,7 @@ export const gameTypeSchema = z.enum([
 export type GameType = z.infer<typeof gameTypeSchema>;
 
 const rawGameSchema = z.object({
+  away_penalty_score: optionalPenaltyScore,
   away_score: scoreString,
   away_scorers: nullableString,
   // Knockout matches use 0 until the bracket team is determined.
@@ -56,6 +70,7 @@ const rawGameSchema = z.object({
   away_team_name_fa: z.string().optional(),
   finished: stringBoolean,
   group: z.string(),
+  home_penalty_score: optionalPenaltyScore,
   home_score: scoreString,
   home_scorers: nullableString,
   home_team_id: numericString,
@@ -88,6 +103,7 @@ function parseTimeElapsed(raw: RawGame): TimeElapsed {
 }
 
 export const gameSchema = rawGameSchema.transform((raw) => ({
+  awayPenaltyScore: raw.away_penalty_score,
   awayScore: raw.away_score,
   awayScorers: raw.away_scorers,
   awayTeamId: raw.away_team_id === 0 ? null : raw.away_team_id,
@@ -95,6 +111,7 @@ export const gameSchema = rawGameSchema.transform((raw) => ({
   awayTeamName: raw.away_team_name_en ?? null,
   finished: raw.finished,
   group: raw.group,
+  homePenaltyScore: raw.home_penalty_score,
   homeScore: raw.home_score,
   homeScorers: raw.home_scorers,
   homeTeamId: raw.home_team_id === 0 ? null : raw.home_team_id,

@@ -64,7 +64,9 @@ function BracketError({
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-4 py-8 text-center text-muted-foreground">
-        <p>The knockout bracket is unavailable right now. Please try again later.</p>
+        <p>
+          The knockout bracket is unavailable right now. Please try again later.
+        </p>
         {import.meta.env.DEV ? (
           <p className="text-xs text-destructive">{error.message}</p>
         ) : null}
