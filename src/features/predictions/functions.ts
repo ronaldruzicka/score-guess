@@ -133,7 +133,10 @@ export const getMyPredictions = createServerFn({ method: "GET" }).handler(
   async () => {
     const userId = await requireUserId();
 
-    return db.select().from(predictions).where(eq(predictions.userId, userId));
+    return await db
+      .select()
+      .from(predictions)
+      .where(eq(predictions.userId, userId));
   },
 );
 

@@ -1,15 +1,9 @@
 import type { AnyFieldApi } from "@tanstack/react-form";
-import type { VariantProps } from "class-variance-authority";
 
-import type { badgeVariants } from "@/components/ui/badge";
 import type { PredictionFormInput } from "@/features/predictions/schemas";
 import type { Group, Team } from "@/lib/worldcup/schemas";
 
-import type {
-  EnrichedMatch,
-  MatchTeam,
-  TeamMatchResult,
-} from "./build-matches";
+import type { EnrichedMatch, MatchTeam } from "./build-matches";
 
 import {
   Cancel01Icon,
@@ -28,8 +22,8 @@ import {
 import { Image } from "@unpic/react";
 import { useMemo, useState } from "react";
 
+import { MatchResultBadge } from "@/components/match-result-badge";
 import { Show } from "@/components/show";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -168,30 +162,6 @@ function formatGroupPosition(position: number): string {
       return `${position}th`;
     }
   }
-}
-
-const MatchResultBadgeVariants = new Map<
-  TeamMatchResult["result"],
-  VariantProps<typeof badgeVariants>["variant"]
->([
-  ["D", "warning"],
-  ["L", "destructive"],
-  ["W", "success"],
-]);
-
-function MatchResultBadge({
-  result,
-}: {
-  readonly result: TeamMatchResult["result"];
-}) {
-  return (
-    <Badge
-      className="size-6 rounded-sm text-xs"
-      variant={MatchResultBadgeVariants.get(result)}
-    >
-      {result}
-    </Badge>
-  );
 }
 
 function TeamInfoPopoverContent({

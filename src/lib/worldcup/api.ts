@@ -27,25 +27,31 @@ type CacheEntry<T> = {
  */
 const cache = new Map<string, CacheEntry<unknown>>();
 
-type FetchCachedOptions<TSchema extends z.ZodTypeAny> = {
+type FetchCachedOptions<TSchema extends z.ZodType> = {
   path: string;
   schema: TSchema;
   ttl: number;
 };
 
-function returnStale<T>(entry: CacheEntry<unknown> | undefined): T | null {
-  if (!entry) {
+function getCachedValue<TSchema extends z.ZodType>(
+  entry: CacheEntry<unknown> | undefined,
+  schema: TSchema,
+): z.infer<TSchema> | null {
+  if (entry === undefined) {
     return null;
   }
 
-  return entry.value as T;
+  const parsed = schema.safeParse(entry.value);
+
+  return parsed.success ? parsed.data : null;
 }
 
-function returnStaleOrThrow<T>(
+function returnStaleOrThrow<TSchema extends z.ZodType>(
   entry: CacheEntry<unknown> | undefined,
+  schema: TSchema,
   error: unknown,
-): T {
-  const stale = returnStale<T>(entry);
+): z.infer<TSchema> {
+  const stale = getCachedValue(entry, schema);
 
   if (stale !== null) {
     return stale;
@@ -58,22 +64,25 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
 
-async function fetchCached<TSchema extends z.ZodTypeAny>({
+async function fetchCached<TSchema extends z.ZodType>({
   path,
   schema,
   ttl,
 }: FetchCachedOptions<TSchema>): Promise<z.infer<TSchema>> {
   const now = Date.now();
   const cached = cache.get(path);
+  const freshValue = getCachedValue(cached, schema);
 
-  if (cached && cached.expiresAt > now) {
+  if (cached && cached.expiresAt > now && freshValue !== null) {
     console.log("♻️ returning cached data", cached.value);
-    return cached.value as z.infer<TSchema>;
+    return freshValue;
   }
 
   const controller = new AbortController();
 
-  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, FETCH_TIMEOUT);
 
   const [error, response] = await fAwait(
     fetch(`${API_BASE_URL}${path}`, {
@@ -87,6 +96,7 @@ async function fetchCached<TSchema extends z.ZodTypeAny>({
   if (error) {
     return returnStaleOrThrow(
       cached,
+      schema,
       isAbortError(error)
         ? new Error(`World Cup API request timed out: ${path}`, {
             cause: error,
@@ -98,6 +108,7 @@ async function fetchCached<TSchema extends z.ZodTypeAny>({
   if (!response.ok) {
     return returnStaleOrThrow(
       cached,
+      schema,
       new Error(`World Cup API request failed: ${path} (${response.status})`),
     );
   }
@@ -105,13 +116,13 @@ async function fetchCached<TSchema extends z.ZodTypeAny>({
   const [jsonError, json] = await fAwait(response.json());
 
   if (jsonError) {
-    return returnStaleOrThrow(cached, jsonError);
+    return returnStaleOrThrow(cached, schema, jsonError);
   }
 
   const parseResult = schema.safeParse(json);
 
   if (!parseResult.success) {
-    return returnStaleOrThrow(cached, parseResult.error);
+    return returnStaleOrThrow(cached, schema, parseResult.error);
   }
 
   cache.set(path, {
@@ -122,32 +133,32 @@ async function fetchCached<TSchema extends z.ZodTypeAny>({
   return parseResult.data;
 }
 
-export function fetchGames() {
-  return fetchCached({
+export async function fetchGames() {
+  return await fetchCached({
     path: "/get/games",
     schema: gamesResponseSchema,
     ttl: GAMES_TTL,
   });
 }
 
-export function fetchTeams() {
-  return fetchCached({
+export async function fetchTeams() {
+  return await fetchCached({
     path: "/get/teams",
     schema: teamsResponseSchema,
     ttl: STATIC_TTL,
   });
 }
 
-export function fetchGroups() {
-  return fetchCached({
+export async function fetchGroups() {
+  return await fetchCached({
     path: "/get/groups",
     schema: groupsResponseSchema,
     ttl: STATIC_TTL,
   });
 }
 
-export function fetchStadiums() {
-  return fetchCached({
+export async function fetchStadiums() {
+  return await fetchCached({
     path: "/get/stadiums",
     schema: stadiumsResponseSchema,
     ttl: STATIC_TTL,

@@ -6,11 +6,11 @@ import {
 } from "@/features/predictions/functions";
 
 export const myPredictionsQueryOptions = queryOptions({
-  queryFn: () => getMyPredictions(),
+  queryFn: async () => await getMyPredictions(),
   queryKey: ["predictions", "mine"],
 });
 
 export const leaderboardQueryOptions = queryOptions({
-  queryFn: () => getLeaderboard(),
+  queryFn: async () => await getLeaderboard(),
   queryKey: ["predictions", "leaderboard"],
 });

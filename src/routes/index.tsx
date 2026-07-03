@@ -12,6 +12,7 @@ export const Route = createFileRoute("/")({
     const session = await getSession();
 
     if (session) {
+      // oxlint-disable-next-line typescript/only-throw-error -- TanStack Router redirects are thrown intentionally
       throw redirect({ to: "/dashboard" });
     }
   },

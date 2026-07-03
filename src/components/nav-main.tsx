@@ -2,6 +2,7 @@ import {
   ArrangeByNumbersOneNineIcon,
   ChartIcon,
   DashboardSquare02Icon,
+  Flowchart02Icon,
   FootballIcon,
   Target02Icon,
 } from "@hugeicons/core-free-icons";
@@ -34,6 +35,11 @@ const data = [
     icon: <HugeiconsIcon icon={ArrangeByNumbersOneNineIcon} strokeWidth={2} />,
     title: "Standings",
     url: "/standings",
+  },
+  {
+    icon: <HugeiconsIcon icon={Flowchart02Icon} strokeWidth={2} />,
+    title: "Knockout",
+    url: "/bracket",
   },
   {
     icon: <HugeiconsIcon icon={ChartIcon} strokeWidth={2} />,

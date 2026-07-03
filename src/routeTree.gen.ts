@@ -16,6 +16,7 @@ import { Route as ProtectedMyTipsIndexRouteImport } from './routes/_protected/my
 import { Route as ProtectedMatchCenterIndexRouteImport } from './routes/_protected/match-center/index'
 import { Route as ProtectedLeaderboardIndexRouteImport } from './routes/_protected/leaderboard/index'
 import { Route as ProtectedDashboardIndexRouteImport } from './routes/_protected/dashboard/index'
+import { Route as ProtectedBracketIndexRouteImport } from './routes/_protected/bracket/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ProtectedMatchCenterRecentRouteImport } from './routes/_protected/match-center/recent'
 
@@ -55,6 +56,11 @@ const ProtectedDashboardIndexRoute = ProtectedDashboardIndexRouteImport.update({
   path: '/dashboard/',
   getParentRoute: () => ProtectedRouteRoute,
 } as any)
+const ProtectedBracketIndexRoute = ProtectedBracketIndexRouteImport.update({
+  id: '/bracket/',
+  path: '/bracket/',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/match-center/recent': typeof ProtectedMatchCenterRecentRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/bracket/': typeof ProtectedBracketIndexRoute
   '/dashboard/': typeof ProtectedDashboardIndexRoute
   '/leaderboard/': typeof ProtectedLeaderboardIndexRoute
   '/match-center/': typeof ProtectedMatchCenterIndexRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/match-center/recent': typeof ProtectedMatchCenterRecentRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/bracket': typeof ProtectedBracketIndexRoute
   '/dashboard': typeof ProtectedDashboardIndexRoute
   '/leaderboard': typeof ProtectedLeaderboardIndexRoute
   '/match-center': typeof ProtectedMatchCenterIndexRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteRouteWithChildren
   '/_protected/match-center/recent': typeof ProtectedMatchCenterRecentRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_protected/bracket/': typeof ProtectedBracketIndexRoute
   '/_protected/dashboard/': typeof ProtectedDashboardIndexRoute
   '/_protected/leaderboard/': typeof ProtectedLeaderboardIndexRoute
   '/_protected/match-center/': typeof ProtectedMatchCenterIndexRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/match-center/recent'
     | '/api/auth/$'
+    | '/bracket/'
     | '/dashboard/'
     | '/leaderboard/'
     | '/match-center/'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/'
     | '/match-center/recent'
     | '/api/auth/$'
+    | '/bracket'
     | '/dashboard'
     | '/leaderboard'
     | '/match-center'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/_protected/match-center/recent'
     | '/api/auth/$'
+    | '/_protected/bracket/'
     | '/_protected/dashboard/'
     | '/_protected/leaderboard/'
     | '/_protected/match-center/'
@@ -190,6 +202,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedDashboardIndexRouteImport
       parentRoute: typeof ProtectedRouteRoute
     }
+    '/_protected/bracket/': {
+      id: '/_protected/bracket/'
+      path: '/bracket'
+      fullPath: '/bracket/'
+      preLoaderRoute: typeof ProtectedBracketIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -209,6 +228,7 @@ declare module '@tanstack/react-router' {
 
 interface ProtectedRouteRouteChildren {
   ProtectedMatchCenterRecentRoute: typeof ProtectedMatchCenterRecentRoute
+  ProtectedBracketIndexRoute: typeof ProtectedBracketIndexRoute
   ProtectedDashboardIndexRoute: typeof ProtectedDashboardIndexRoute
   ProtectedLeaderboardIndexRoute: typeof ProtectedLeaderboardIndexRoute
   ProtectedMatchCenterIndexRoute: typeof ProtectedMatchCenterIndexRoute
@@ -218,6 +238,7 @@ interface ProtectedRouteRouteChildren {
 
 const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
   ProtectedMatchCenterRecentRoute: ProtectedMatchCenterRecentRoute,
+  ProtectedBracketIndexRoute: ProtectedBracketIndexRoute,
   ProtectedDashboardIndexRoute: ProtectedDashboardIndexRoute,
   ProtectedLeaderboardIndexRoute: ProtectedLeaderboardIndexRoute,
   ProtectedMatchCenterIndexRoute: ProtectedMatchCenterIndexRoute,
