@@ -1,6 +1,9 @@
 import type { SingleEliminationMatch } from "./single-elimination-match";
 
-import { BRACKET_VIEW_OPTIONS } from "./bracket-theme";
+import {
+  BRACKET_MATCH_BOX_HEIGHT,
+  BRACKET_VIEW_OPTIONS,
+} from "./bracket-theme";
 
 const CANVAS_PADDING = 25;
 const DEFAULT_ROUND_HEADER_HEIGHT = 40;
@@ -9,7 +12,6 @@ const FINAL_MATCH_LABEL_GAP = 10;
 const FINAL_TO_THIRD_PLACE_GAP = 24;
 const THIRD_PLACE_LABEL_HEIGHT = 20;
 const THIRD_PLACE_SECTION_GAP = 12;
-const THIRD_PLACE_MATCH_CARD_HEIGHT = 156;
 
 export type BracketOverlayPosition = {
   height: number;
@@ -157,7 +159,7 @@ export function getThirdPlacePosition(
     height:
       THIRD_PLACE_LABEL_HEIGHT +
       THIRD_PLACE_SECTION_GAP +
-      THIRD_PLACE_MATCH_CARD_HEIGHT,
+      BRACKET_MATCH_BOX_HEIGHT,
     width: finalPosition.width,
     x: finalPosition.x,
     y: finalPosition.y + finalPosition.matchHeight + FINAL_TO_THIRD_PLACE_GAP,

@@ -2,6 +2,7 @@ import type { MatchComponentProps } from "@g-loot/react-tournament-brackets";
 
 import { useBracketEnrichedMatch } from "./bracket-match-lookup";
 import { BracketMatchNode } from "./bracket-match-node";
+import { BRACKET_MATCH_BOX_HEIGHT } from "./bracket-theme";
 import { getParticipantId } from "./build-single-elimination-matches";
 
 function resolveTeamSide({
@@ -21,6 +22,7 @@ function resolveTeamSide({
 export function BracketTournamentMatch({
   bottomHovered,
   bottomParty,
+  computedStyles,
   match,
   onMouseEnter,
   onMouseLeave,
@@ -28,13 +30,15 @@ export function BracketTournamentMatch({
   topParty,
 }: MatchComponentProps) {
   const enrichedMatch = useBracketEnrichedMatch(match.id);
+  const boxHeight = computedStyles?.boxHeight ?? BRACKET_MATCH_BOX_HEIGHT;
+  const matchSlotStyle = { height: boxHeight, width: "100%" } as const;
 
   if (!enrichedMatch) {
-    return <div aria-hidden className="h-full w-full" />;
+    return <div aria-hidden style={matchSlotStyle} />;
   }
 
   return (
-    <div className="h-full w-full">
+    <div style={matchSlotStyle}>
       <BracketMatchNode
         match={enrichedMatch}
         rows={[

@@ -4,13 +4,13 @@ export const BRACKET_CANVAS_BACKGROUND = "var(--background)";
 
 export const bracketTheme = createTheme({
   border: {
-    color: "#27272a",
-    highlightedColor: "#a78bfa",
+    color: "var(--border)",
+    highlightedColor: "var(--primary)",
   },
   canvasBackground: BRACKET_CANVAS_BACKGROUND,
   matchBackground: {
-    lostColor: "#121215",
-    wonColor: "#121215",
+    lostColor: "var(--card)",
+    wonColor: "var(--card)",
   },
   roundHeaders: {
     background: "transparent",
@@ -27,8 +27,8 @@ export const bracketTheme = createTheme({
   },
   textColor: {
     dark: "#71717a",
-    disabled: "#52525b",
-    highlighted: "#fafafa",
+    disabled: "var(--muted-foreground)",
+    highlighted: "var(--foreground)",
     main: "#e4e4e7",
   },
 });
@@ -41,14 +41,17 @@ const BRACKET_ROUND_LABELS = [
   "Final",
 ] as const;
 
+/** Keep in sync with `BracketMatchNode` (border + p-2 + badge + gaps + two team rows). */
+export const BRACKET_MATCH_BOX_HEIGHT = 117;
+
 export const BRACKET_VIEW_OPTIONS = {
   style: {
-    boxHeight: 152,
-    connectorColor: "#3f3f46",
-    connectorColorHighlight: "#a78bfa",
+    boxHeight: BRACKET_MATCH_BOX_HEIGHT,
+    connectorColor: "var(--border)",
+    connectorColorHighlight: "var(--primary)",
     roundHeader: {
       backgroundColor: "transparent",
-      fontColor: "#a1a1aa",
+      fontColor: "var(--muted-foreground)",
       fontSize: 11,
       isShown: true,
       marginBottom: 16,
@@ -61,7 +64,7 @@ export const BRACKET_VIEW_OPTIONS = {
       },
     },
     spaceBetweenColumns: 24,
-    spaceBetweenRows: 16,
+    spaceBetweenRows: 12,
     width: 224,
   },
 } as const;

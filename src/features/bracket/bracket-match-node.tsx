@@ -38,7 +38,7 @@ function TeamFlag({ flag }: { readonly flag: MatchTeam["flag"] }) {
   }
 
   return (
-    <span className="inline-flex h-3 w-5 shrink-0 items-center justify-center rounded-[2px] bg-zinc-800 text-[0.5rem] text-muted-foreground">
+    <span className="flex h-3 w-5 shrink-0 items-center justify-center rounded-[2px] bg-zinc-800 text-[0.5rem] text-muted-foreground">
       ?
     </span>
   );
@@ -112,7 +112,7 @@ function TeamRow({
   readonly team: MatchTeam;
 }) {
   const rowClassName = cn(
-    "flex w-full items-center justify-between gap-3 rounded-md px-1.5 py-0.5 transition-colors",
+    "flex min-h-7 w-full items-center justify-between gap-3 rounded-md px-1.5 py-0.5 transition-colors",
     hovered && "bg-primary/10 ring-1 ring-primary/50",
   );
 
@@ -284,7 +284,7 @@ export function BracketMatchNode({
     : [getTeamRowProps("home"), getTeamRowProps("away")];
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-[#121215] p-[17px]">
+    <div className="h-full rounded-lg border bg-neutral-900 p-2">
       <Show when={!showPlaceholder} fallback={<MatchPlaceholder game={game} />}>
         <div className="flex flex-col items-start gap-3">
           <BracketStatusBadge
