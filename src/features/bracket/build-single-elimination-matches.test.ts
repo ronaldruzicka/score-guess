@@ -183,6 +183,68 @@ describe("buildSingleEliminationMatches", () => {
     expect(r16?.participants[0]?.id).toBe(1);
   });
 
+  it("links quarter-finals to semi-finals using feeder labels, not array position", () => {
+    const matches = [
+      createMatch({
+        awayTeamLabel: "Winner Match 90",
+        homeTeamLabel: "Winner Match 89",
+        id: 97,
+        type: "qf",
+      }),
+      createMatch({
+        awayTeamLabel: "Winner Match 92",
+        homeTeamLabel: "Winner Match 91",
+        id: 99,
+        type: "qf",
+      }),
+      createMatch({
+        awayTeamLabel: "Winner Match 94",
+        homeTeamLabel: "Winner Match 93",
+        id: 98,
+        type: "qf",
+      }),
+      createMatch({
+        awayTeamLabel: "Winner Match 96",
+        homeTeamLabel: "Winner Match 95",
+        id: 100,
+        type: "qf",
+      }),
+      createMatch({
+        awayTeamLabel: "Winner Match 98",
+        homeTeamLabel: "Winner Match 97",
+        id: 101,
+        type: "sf",
+      }),
+      createMatch({
+        awayTeamLabel: "Winner Match 100",
+        homeTeamLabel: "Winner Match 99",
+        id: 102,
+        type: "sf",
+      }),
+      createMatch({
+        awayTeamLabel: "Winner Match 102",
+        homeTeamLabel: "Winner Match 101",
+        id: 104,
+        type: "final",
+      }),
+    ];
+
+    const { matches: bracketMatches } = buildSingleEliminationMatches(matches);
+
+    expect(bracketMatches.find((match) => match.id === 97)?.nextMatchId).toBe(
+      101,
+    );
+    expect(bracketMatches.find((match) => match.id === 98)?.nextMatchId).toBe(
+      101,
+    );
+    expect(bracketMatches.find((match) => match.id === 99)?.nextMatchId).toBe(
+      102,
+    );
+    expect(bracketMatches.find((match) => match.id === 100)?.nextMatchId).toBe(
+      102,
+    );
+  });
+
   it("uses the full round-of-32 order when all matches are present", () => {
     const matches = R32_BRACKET_ORDER.map((id) =>
       createMatch({

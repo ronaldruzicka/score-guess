@@ -7,6 +7,7 @@ import type {
 } from "./single-elimination-match";
 
 import { formatBracketScore, wentToPenalties } from "./bracket-match-format";
+import { getParentMatchIds } from "./bracket-order";
 import { buildKnockoutBracket } from "./build-bracket";
 import { KNOCKOUT_ROUNDS } from "./constants";
 
@@ -189,6 +190,18 @@ function findThirdPlaceMatch(rounds: BracketRound[]): EnrichedMatch | null {
   );
 }
 
+function findNextMatchId(
+  match: EnrichedMatch,
+  nextRoundMatches: EnrichedMatch[],
+): number | null {
+  const matchId = match.game.id;
+  const nextMatch = nextRoundMatches.find((candidate) =>
+    getParentMatchIds(candidate).includes(matchId),
+  );
+
+  return nextMatch?.game.id ?? null;
+}
+
 function linkSingleEliminationMatches(
   treeRounds: { id: string; matches: EnrichedMatch[] }[],
 ): SingleEliminationMatch[] {
@@ -198,19 +211,13 @@ function linkSingleEliminationMatches(
     const round = treeRounds[roundIndex];
     const nextRound = treeRounds[roundIndex + 1];
 
-    for (
-      let matchIndex = 0;
-      matchIndex < round.matches.length;
-      matchIndex += 1
-    ) {
-      const match = round.matches[matchIndex];
-      const nextMatch =
-        nextRound?.matches[Math.floor(matchIndex / 2)] ?? undefined;
-
+    for (const match of round.matches) {
       singleEliminationMatches.push(
         toSingleEliminationMatch({
           match,
-          nextMatchId: nextMatch?.game.id ?? null,
+          nextMatchId: nextRound
+            ? findNextMatchId(match, nextRound.matches)
+            : null,
           roundId: round.id,
         }),
       );
